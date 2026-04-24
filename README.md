@@ -5,7 +5,9 @@ between machines, diff across firmware versions, and not lose a working
 tune to a flash corruption.
 
 Public repo but mostly for my own use — nothing here is supported or
-warrantied. Pick through at your own risk.
+warrantied. Pick through at your own risk. MIT-licensed (see `LICENSE`);
+files under `docs/inav/` stay under INAV's upstream GPL-3.0 (see
+`docs/inav/README.md`).
 
 ## Fleet
 
