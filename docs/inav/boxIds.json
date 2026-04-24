@@ -1,0 +1,297 @@
+[
+  {
+    "permanentId": 0,
+    "name": "ARM",
+    "boxId": "BOXARM"
+  },
+  {
+    "permanentId": 1,
+    "name": "ANGLE",
+    "boxId": "BOXANGLE"
+  },
+  {
+    "permanentId": 2,
+    "name": "HORIZON",
+    "boxId": "BOXHORIZON"
+  },
+  {
+    "permanentId": 3,
+    "name": "NAV ALTHOLD",
+    "boxId": "BOXNAVALTHOLD"
+  },
+  {
+    "permanentId": 5,
+    "name": "HEADING HOLD",
+    "boxId": "BOXHEADINGHOLD"
+  },
+  {
+    "permanentId": 6,
+    "name": "HEADFREE",
+    "boxId": "BOXHEADFREE"
+  },
+  {
+    "permanentId": 7,
+    "name": "HEADADJ",
+    "boxId": "BOXHEADADJ"
+  },
+  {
+    "permanentId": 8,
+    "name": "CAMSTAB",
+    "boxId": "BOXCAMSTAB"
+  },
+  {
+    "permanentId": 10,
+    "name": "NAV RTH",
+    "boxId": "BOXNAVRTH"
+  },
+  {
+    "permanentId": 11,
+    "name": "NAV POSHOLD",
+    "boxId": "BOXNAVPOSHOLD"
+  },
+  {
+    "permanentId": 12,
+    "name": "MANUAL",
+    "boxId": "BOXMANUAL"
+  },
+  {
+    "permanentId": 13,
+    "name": "BEEPER",
+    "boxId": "BOXBEEPERON"
+  },
+  {
+    "permanentId": 15,
+    "name": "LEDS OFF",
+    "boxId": "BOXLEDLOW"
+  },
+  {
+    "permanentId": 16,
+    "name": "LIGHTS",
+    "boxId": "BOXLIGHTS"
+  },
+  {
+    "permanentId": 19,
+    "name": "OSD OFF",
+    "boxId": "BOXOSD"
+  },
+  {
+    "permanentId": 20,
+    "name": "TELEMETRY",
+    "boxId": "BOXTELEMETRY"
+  },
+  {
+    "permanentId": 21,
+    "name": "AUTO TUNE",
+    "boxId": "BOXAUTOTUNE"
+  },
+  {
+    "permanentId": 26,
+    "name": "BLACKBOX",
+    "boxId": "BOXBLACKBOX"
+  },
+  {
+    "permanentId": 27,
+    "name": "FAILSAFE",
+    "boxId": "BOXFAILSAFE"
+  },
+  {
+    "permanentId": 28,
+    "name": "NAV WP",
+    "boxId": "BOXNAVWP"
+  },
+  {
+    "permanentId": 29,
+    "name": "AIR MODE",
+    "boxId": "BOXAIRMODE"
+  },
+  {
+    "permanentId": 30,
+    "name": "HOME RESET",
+    "boxId": "BOXHOMERESET"
+  },
+  {
+    "permanentId": 31,
+    "name": "GCS NAV",
+    "boxId": "BOXGCSNAV"
+  },
+  {
+    "permanentId": 32,
+    "name": "FPV ANGLE MIX",
+    "boxId": "BOXFPVANGLEMIX"
+  },
+  {
+    "permanentId": 33,
+    "name": "SURFACE",
+    "boxId": "BOXSURFACE"
+  },
+  {
+    "permanentId": 34,
+    "name": "FLAPERON",
+    "boxId": "BOXFLAPERON"
+  },
+  {
+    "permanentId": 35,
+    "name": "TURN ASSIST",
+    "boxId": "BOXTURNASSIST"
+  },
+  {
+    "permanentId": 36,
+    "name": "NAV LAUNCH",
+    "boxId": "BOXNAVLAUNCH"
+  },
+  {
+    "permanentId": 37,
+    "name": "SERVO AUTOTRIM",
+    "boxId": "BOXAUTOTRIM"
+  },
+  {
+    "permanentId": 39,
+    "name": "CAMERA CONTROL 1",
+    "boxId": "BOXCAMERA1"
+  },
+  {
+    "permanentId": 40,
+    "name": "CAMERA CONTROL 2",
+    "boxId": "BOXCAMERA2"
+  },
+  {
+    "permanentId": 41,
+    "name": "CAMERA CONTROL 3",
+    "boxId": "BOXCAMERA3"
+  },
+  {
+    "permanentId": 42,
+    "name": "OSD ALT 1",
+    "boxId": "BOXOSDALT1"
+  },
+  {
+    "permanentId": 43,
+    "name": "OSD ALT 2",
+    "boxId": "BOXOSDALT2"
+  },
+  {
+    "permanentId": 44,
+    "name": "OSD ALT 3",
+    "boxId": "BOXOSDALT3"
+  },
+  {
+    "permanentId": 45,
+    "name": "NAV COURSE HOLD",
+    "boxId": "BOXNAVCOURSEHOLD"
+  },
+  {
+    "permanentId": 46,
+    "name": "MC BRAKING",
+    "boxId": "BOXBRAKING"
+  },
+  {
+    "permanentId": 47,
+    "name": "USER1",
+    "boxId": "BOXUSER1"
+  },
+  {
+    "permanentId": 48,
+    "name": "USER2",
+    "boxId": "BOXUSER2"
+  },
+  {
+    "permanentId": 49,
+    "name": "LOITER CHANGE",
+    "boxId": "BOXLOITERDIRCHN"
+  },
+  {
+    "permanentId": 50,
+    "name": "MSP RC OVERRIDE",
+    "boxId": "BOXMSPRCOVERRIDE"
+  },
+  {
+    "permanentId": 51,
+    "name": "PREARM",
+    "boxId": "BOXPREARM"
+  },
+  {
+    "permanentId": 52,
+    "name": "TURTLE",
+    "boxId": "BOXTURTLE"
+  },
+  {
+    "permanentId": 53,
+    "name": "NAV CRUISE",
+    "boxId": "BOXNAVCRUISE"
+  },
+  {
+    "permanentId": 54,
+    "name": "AUTO LEVEL TRIM",
+    "boxId": "BOXAUTOLEVEL"
+  },
+  {
+    "permanentId": 55,
+    "name": "WP PLANNER",
+    "boxId": "BOXPLANWPMISSION"
+  },
+  {
+    "permanentId": 56,
+    "name": "SOARING",
+    "boxId": "BOXSOARING"
+  },
+  {
+    "permanentId": 57,
+    "name": "USER3",
+    "boxId": "BOXUSER3"
+  },
+  {
+    "permanentId": 58,
+    "name": "USER4",
+    "boxId": "BOXUSER4"
+  },
+  {
+    "permanentId": 59,
+    "name": "MISSION CHANGE",
+    "boxId": "BOXCHANGEMISSION"
+  },
+  {
+    "permanentId": 60,
+    "name": "BEEPER MUTE",
+    "boxId": "BOXBEEPERMUTE"
+  },
+  {
+    "permanentId": 61,
+    "name": "MULTI FUNCTION",
+    "boxId": "BOXMULTIFUNCTION"
+  },
+  {
+    "permanentId": 62,
+    "name": "MIXER PROFILE 2",
+    "boxId": "BOXMIXERPROFILE"
+  },
+  {
+    "permanentId": 63,
+    "name": "MIXER TRANSITION",
+    "boxId": "BOXMIXERTRANSITION"
+  },
+  {
+    "permanentId": 64,
+    "name": "ANGLE HOLD",
+    "boxId": "BOXANGLEHOLD"
+  },
+  {
+    "permanentId": 65,
+    "name": "GIMBAL LEVEL TILT",
+    "boxId": "BOXGIMBALTLOCK"
+  },
+  {
+    "permanentId": 66,
+    "name": "GIMBAL LEVEL ROLL",
+    "boxId": "BOXGIMBALRLOCK"
+  },
+  {
+    "permanentId": 67,
+    "name": "GIMBAL CENTER",
+    "boxId": "BOXGIMBALCENTER"
+  },
+  {
+    "permanentId": 68,
+    "name": "GIMBAL HEADTRACKER",
+    "boxId": "BOXGIMBALHTRK"
+  }
+]

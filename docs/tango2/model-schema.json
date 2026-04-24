@@ -1,0 +1,783 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ModelEditorData",
+  "description": "Flat DTO for the model editor page. Mixers are included as a full 64-row list (the UI filters empty ones client-side) since that's ~10 KB of JSON — well under the Tauri IPC threshold.",
+  "type": "object",
+  "required": [
+    "active",
+    "curves",
+    "custom_functions",
+    "expos",
+    "filename",
+    "flight_modes",
+    "limits",
+    "logical_switches",
+    "mixers",
+    "name",
+    "slot",
+    "telemetry_sensors",
+    "timers"
+  ],
+  "properties": {
+    "active": {
+      "description": "Whether this slot is listed as \"active\" in `RADIO/models.txt` (i.e. selectable from the radio's model list at runtime).",
+      "type": "boolean"
+    },
+    "curves": {
+      "description": "Up to 32 curves referenced by mixers and expos (`curve_type > 0` ⇒ referenced by id; `curve_value` is the point array offset).",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CurveEditData"
+      }
+    },
+    "custom_functions": {
+      "description": "Up to 64 \"Special Functions\" — switch-driven actions such as playing a sound, resetting a timer, adjusting a GVar, overriding a channel, etc.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/CustomFunctionEditData"
+      }
+    },
+    "expos": {
+      "description": "Input expos — shape raw stick/pot deflection into the values that the mixer sees. Up to 64 rows.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ExpoEditData"
+      }
+    },
+    "filename": {
+      "description": "Filename of the model on disk, typically `modelN.bin`.",
+      "type": "string"
+    },
+    "flight_modes": {
+      "description": "Up to 9 flight modes. `flight_modes[0]` is the default mode (always active when no other FM's switch is); 1..=8 activate by switch.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FlightModeEditData"
+      }
+    },
+    "limits": {
+      "description": "Per-output-channel clamps, offsets, inversion and optional curve. One row per channel (CH1..CH16+).",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/LimitEditData"
+      }
+    },
+    "logical_switches": {
+      "description": "64 logical switches (L1..L64). A logical switch is a boolean computed from other switches/sources/sensors/timers; it can then be used anywhere a real switch can.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/LogicalSwitchEditData"
+      }
+    },
+    "mixers": {
+      "description": "Full 64-row mixer table. Each row combines a source (stick, switch, channel, ...) into a destination channel with weight/offset/curve. Rows with `src_raw == 0` are empty/unused.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/MixerEditData"
+      }
+    },
+    "name": {
+      "description": "Model name shown on the TX screen. Up to 10 characters (zchar-encoded in the binary; plain UTF-8 here).",
+      "type": "string"
+    },
+    "slot": {
+      "description": "Zero-based index of this model's slot on the SD card (0 = first).",
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0.0
+    },
+    "telemetry_sensors": {
+      "description": "Up to 60 telemetry sensors streamed by the RX/receiver. Most fields are populated by the firmware at runtime; only `label` is user-editable.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TelemetrySensorEditData"
+      }
+    },
+    "timers": {
+      "description": "The three user-configurable timers. `timers[0]` is Timer 1 on the radio.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TimerEditData"
+      }
+    }
+  },
+  "definitions": {
+    "CurveEditData": {
+      "description": "One curve definition referenced by mixers and expos. Curve points live in a shared point buffer on-disk; editing individual points is not yet wired up in the UI — only the metadata (type, smooth, name, point count) is.",
+      "type": "object",
+      "required": [
+        "curve_type",
+        "index",
+        "name",
+        "points_minus_5",
+        "smooth"
+      ],
+      "properties": {
+        "curve_type": {
+          "description": "0 = standard (X-axis symmetric), 1 = custom (explicit X positions).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "index": {
+          "description": "Zero-based curve index (0..=31). Reference this id from `MixerEditData.curve_value` etc.",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "description": "Optional 3-character curve label.",
+          "type": "string"
+        },
+        "points_minus_5": {
+          "description": "Number of points minus 5 (firmware convention). So 0 = 5 points, 8 = 13 points, etc. Signed 6-bit.",
+          "type": "integer",
+          "format": "int8"
+        },
+        "smooth": {
+          "description": "1 = smooth interpolation between points, 0 = linear.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        }
+      }
+    },
+    "CustomFunctionEditData": {
+      "description": "One `CustomFunctionData` entry — the \"Special Functions\" tab. Binds a switch condition to an action (play sound, reset timer, adjust a GVar, override a channel, etc). SF1 = `index 0`, SF64 = `index 63`.",
+      "type": "object",
+      "required": [
+        "active",
+        "all_mode",
+        "all_param",
+        "all_spare",
+        "all_val",
+        "func",
+        "index",
+        "payload_raw",
+        "play_name",
+        "switch",
+        "switch_label"
+      ],
+      "properties": {
+        "active": {
+          "description": "Enable flag (1 bit). Only meaningful for functions below `FUNC_FIRST_WITHOUT_ENABLE` (= 10). For higher indices the firmware repurposes this byte (e.g. repeat counter for play functions).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "all_mode": {
+          "description": "`all` variant — `mode` byte (secondary parameter, e.g. GVar adjust mode: constant/incr/source).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "all_param": {
+          "description": "`all` variant — `param` byte (tertiary parameter, e.g. GVar id, timer id).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "all_spare": {
+          "description": "`all` variant — spare 32-bit slot reserved for future expansions.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "all_val": {
+          "description": "`all` variant — numeric operand `val`. For SET_TIMER it's the seconds; for ADJUST_GVAR it's the value; for OVERRIDE_CHANNEL the channel value.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "func": {
+          "description": "Action id — see `FUNC_*` constants. A few common ones on Tango: 0 OVERRIDE_CHANNEL, 3 RESET, 4 SET_TIMER, 5 ADJUST_GVAR, 10 PLAY_SOUND, 11 PLAY_TRACK, 14 PLAY_SCRIPT, 16 BACKGND_MUSIC.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "index": {
+          "description": "Zero-based SF index (0 = SF1).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "payload_raw": {
+          "description": "Raw 8-byte union payload — the source of truth for variants the editor doesn't decode explicitly yet. Preserved across save so custom variants aren't zeroed out on round-trip.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0.0
+          },
+          "maxItems": 8,
+          "minItems": 8
+        },
+        "play_name": {
+          "description": "Sound / script filename for PLAY_TRACK / PLAY_SCRIPT / BACKGND_MUSIC. Up to 6 ASCII chars (no extension); resolved at runtime as `SOUNDS/<lang>/<name>.wav` etc.",
+          "type": "string"
+        },
+        "switch": {
+          "description": "Signed 9-bit switch reference (SWSRC). The function activates when this switch is true. 0 = disabled.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "switch_label": {
+          "description": "Resolved switch label.",
+          "type": "string"
+        }
+      }
+    },
+    "ExpoEditData": {
+      "description": "One `ExpoData` row — the \"Inputs\" tab in the OpenTX companion. Expos shape how a raw stick / pot deflection is mapped to the input that the mixer later reads. Typical use: add exponential curves to the sticks.",
+      "type": "object",
+      "required": [
+        "carry_trim",
+        "chn",
+        "curve_type",
+        "curve_value",
+        "flight_modes",
+        "index",
+        "mode",
+        "name",
+        "offset",
+        "scale",
+        "src_label",
+        "src_raw",
+        "switch",
+        "weight"
+      ],
+      "properties": {
+        "carry_trim": {
+          "description": "Trim handling: signed 6-bit. Negative values disable trim from this source; 0 = use the default trim for the stick.",
+          "type": "integer",
+          "format": "int8"
+        },
+        "chn": {
+          "description": "Zero-based destination input channel (0 = I1).",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "curve_type": {
+          "description": "Curve type: 0 = standard, >0 = custom curve id.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "curve_value": {
+          "description": "Curve amount (for standard) or curve id (for custom).",
+          "type": "integer",
+          "format": "int8"
+        },
+        "flight_modes": {
+          "description": "Flight-mode bitmask — a bit set here disables the expo in that mode.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "index": {
+          "description": "Row position in the expo table (0..=63).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "mode": {
+          "description": "Activation mode (2 bits): 0 = disabled, 1 = positive-only, 2 = negative-only, 3 = both halves of the stick active.",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "name": {
+          "description": "Optional 6-character expo label.",
+          "type": "string"
+        },
+        "offset": {
+          "description": "Expo offset in percent.",
+          "type": "integer",
+          "format": "int8"
+        },
+        "scale": {
+          "description": "Input scale factor (14 bits). Rarely changed — use `weight` for normal gain adjustments.",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "src_label": {
+          "description": "Resolved human-readable label for `src_raw`.",
+          "type": "string"
+        },
+        "src_raw": {
+          "description": "Raw mix-source index used as the input (usually a stick or pot).",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "switch": {
+          "description": "Signed 9-bit switch reference — expo is only active when this switch is ON. 0 = always active.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "weight": {
+          "description": "Expo weight in percent, signed (-100..=100).",
+          "type": "integer",
+          "format": "int8"
+        }
+      }
+    },
+    "FlightModeEditData": {
+      "description": "One `FlightModeData` entry. FM0 (index 0) is the default — always active unless another FM's switch supersedes it. FM1..FM8 activate when their `switch` becomes true.",
+      "type": "object",
+      "required": [
+        "fade_in",
+        "fade_out",
+        "gvars",
+        "index",
+        "name",
+        "switch"
+      ],
+      "properties": {
+        "fade_in": {
+          "description": "Fade-in time when this FM becomes active, in tenths of a second.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "fade_out": {
+          "description": "Fade-out time when leaving this FM, in tenths of a second.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "gvars": {
+          "description": "Values for the 9 global variables (GVars 1..9) while this FM is active. `gvars[i]` is the raw signed value for GVar i+1.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int16"
+          },
+          "maxItems": 9,
+          "minItems": 9
+        },
+        "index": {
+          "description": "Zero-based flight-mode index (0 = default FM0).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "name": {
+          "description": "Optional 6-character FM label shown on the TX screen.",
+          "type": "string"
+        },
+        "switch": {
+          "description": "Signed 9-bit switch reference that activates this FM. Unused for FM0.",
+          "type": "integer",
+          "format": "int16"
+        }
+      }
+    },
+    "LimitEditData": {
+      "type": "object",
+      "required": [
+        "channel",
+        "curve",
+        "max",
+        "min",
+        "name",
+        "offset",
+        "ppm_center",
+        "revert",
+        "symetrical"
+      ],
+      "properties": {
+        "channel": {
+          "description": "Zero-based output channel (0 = CH1).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "curve": {
+          "description": "Optional output curve applied after mixing, as a signed id into the curve table. 0 = straight-through.",
+          "type": "integer",
+          "format": "int8"
+        },
+        "max": {
+          "description": "Upper clamp on the output (+1023 = +100%).",
+          "type": "integer",
+          "format": "int16"
+        },
+        "min": {
+          "description": "Lower clamp on the output, as a signed 11-bit value (-1024 = -100%).",
+          "type": "integer",
+          "format": "int16"
+        },
+        "name": {
+          "description": "Optional 4-character channel label (e.g. \"AIL\", \"RUD\").",
+          "type": "string"
+        },
+        "offset": {
+          "description": "Output offset applied after clamping.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "ppm_center": {
+          "description": "Sub-trim: PPM pulse-width offset around the 1500 µs centre, in µs. Range roughly -500..=500.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "revert": {
+          "description": "1 = invert output polarity for this channel.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "symetrical": {
+          "description": "1 = symmetrical trim (trim centres between `min` and `max` rather than 0). 0 = asymmetric.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        }
+      }
+    },
+    "LogicalSwitchEditData": {
+      "description": "One `LogicalSwitchData` entry — a derived boolean switch that can be used anywhere a real switch can. L1 = `index 0`, L64 = `index 63`.",
+      "type": "object",
+      "required": [
+        "andsw",
+        "andsw_label",
+        "andsw_type",
+        "delay",
+        "duration",
+        "func",
+        "index",
+        "v1",
+        "v1_label",
+        "v2",
+        "v3",
+        "v3_label"
+      ],
+      "properties": {
+        "andsw": {
+          "description": "Optional extra AND/OR switch gating the final result.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "andsw_label": {
+          "description": "Resolved label for `andsw`.",
+          "type": "string"
+        },
+        "andsw_type": {
+          "description": "How `andsw` combines with the primary condition: 0 = AND, 1 = OR.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "delay": {
+          "description": "Activation delay in tenths of a second after the condition becomes true.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "duration": {
+          "description": "How long the switch stays ON after activation, in tenths of seconds. 0 = indefinite (stays true as long as the condition holds).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "func": {
+          "description": "Operator / function — see `LS_FUNC_*` constants. Broad groups: 0 = off; 1..=7 compare a source to a constant (`V<`, `V>`, range, ...); 8..=10,18 boolean ops (AND/OR/XOR/STICKY); 11 EDGE; 12..=14 compare two sources (`a == b` / `a > b` / `a < b`); 15..=16 DIFF functions; 17 TIMER.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "index": {
+          "description": "Zero-based logical-switch index (0 = L1, 63 = L64).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "v1": {
+          "description": "First operand. Interpretation depends on `func`: mix source (compares), switch source (AND/OR/EDGE), or integer (TIMER seconds).",
+          "type": "integer",
+          "format": "int16"
+        },
+        "v1_label": {
+          "description": "Resolved label for `v1` (e.g. \"Thr\", \"SA↑\", \"#17\").",
+          "type": "string"
+        },
+        "v2": {
+          "description": "Second operand. Typically a constant value for threshold compares, a switch for boolean ops, a source id for two-source compares, or a time for EDGE / TIMER.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "v3": {
+          "description": "Third operand — only used by EDGE (`time_max`) and DIFF (threshold). Zero for other functions.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "v3_label": {
+          "description": "Resolved label for `v3`.",
+          "type": "string"
+        }
+      }
+    },
+    "MixerEditData": {
+      "type": "object",
+      "required": [
+        "carry_trim",
+        "curve_type",
+        "curve_value",
+        "delay_down",
+        "delay_up",
+        "dest_ch",
+        "flight_modes",
+        "index",
+        "mltpx",
+        "name",
+        "offset",
+        "speed_down",
+        "speed_up",
+        "src_label",
+        "src_raw",
+        "switch",
+        "weight"
+      ],
+      "properties": {
+        "carry_trim": {
+          "description": "If non-zero, exclude the source's trim contribution from this row.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "curve_type": {
+          "description": "Curve type: 0 = standard (differential/expo curve), >0 = custom curve selected by `curve_value`.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "curve_value": {
+          "description": "Meaning depends on `curve_type`: for standard, the curve amount (expo percent); for custom, the signed curve id referencing `curves[]`.",
+          "type": "integer",
+          "format": "int8"
+        },
+        "delay_down": {
+          "description": "Fall-time delay, in tenths of a second.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "delay_up": {
+          "description": "Rise-time delay before the output follows the input, in tenths of a second. 0 = instant.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "dest_ch": {
+          "description": "Zero-based destination channel (0 = CH1, 1 = CH2, ...).",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "flight_modes": {
+          "description": "Flight-mode bitmask — a bit set here DISABLES the row when that flight mode is active. 0 = always active regardless of flight mode.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        },
+        "index": {
+          "description": "Row position in the mixer table (0..=63).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "mltpx": {
+          "description": "How this row combines with earlier rows targeting the same channel: 0 = add (`+=`), 1 = multiply (`*=`), 2 = replace (`:=`).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "name": {
+          "description": "Optional 6-character label displayed in the mixer list.",
+          "type": "string"
+        },
+        "offset": {
+          "description": "Constant added after the weight is applied, as a signed 14-bit value mapped to percent (-8192 = -100%).",
+          "type": "integer",
+          "format": "int16"
+        },
+        "speed_down": {
+          "description": "Fall-rate limit, in tenths of a second per unit.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "speed_up": {
+          "description": "Rise-rate limit (slew) in tenths of a second per unit. 0 = instant.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "src_label": {
+          "description": "Resolved human-readable label for `src_raw` (e.g. \"Rud\", \"CH1\", \"L3\"). Computed by the backend; round-trip ignores this field on import.",
+          "type": "string"
+        },
+        "src_raw": {
+          "description": "Raw source index — sticks (Rud/Thr/Ele/Ail), pots, switches, channels, logical switches, telemetry sensors, etc. Use `src_label` for the human-readable name.",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "switch": {
+          "description": "Signed 9-bit switch reference (SWSRC). The row is only active while this switch is ON. 0 = always active.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "weight": {
+          "description": "Weight applied to the source, as a signed 11-bit value mapped to percent: -1024 = -100%, 0 = 0%, 1023 = +100%. Full range -1024..=1023.",
+          "type": "integer",
+          "format": "int16"
+        }
+      }
+    },
+    "TelemetrySensorEditData": {
+      "description": "One telemetry sensor — usually auto-populated by the receiver over CRSF. Only `label` is routinely user-edited; the other fields are read-mostly.",
+      "type": "object",
+      "required": [
+        "auto_offset",
+        "filter",
+        "id",
+        "index",
+        "instance",
+        "label",
+        "logs",
+        "only_positive",
+        "persistent",
+        "prec",
+        "sensor_type",
+        "sub_id",
+        "unit"
+      ],
+      "properties": {
+        "auto_offset": {
+          "description": "1 = auto-tare / zero-reference on model load.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "filter": {
+          "description": "1 = apply the firmware's low-pass filter before display.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "id": {
+          "description": "Physical/logical sensor id (CRSF type code or protocol-specific id).",
+          "type": "integer",
+          "format": "uint16",
+          "minimum": 0.0
+        },
+        "index": {
+          "description": "Zero-based sensor slot (0..=59).",
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "instance": {
+          "description": "Sensor instance — lets multiple sensors of the same type coexist.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "label": {
+          "description": "User-facing sensor label, up to 4 characters (zchar on-disk).",
+          "type": "string"
+        },
+        "logs": {
+          "description": "1 = include this sensor in SD telemetry logs.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "only_positive": {
+          "description": "1 = clamp displayed values to >= 0.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "persistent": {
+          "description": "1 = save last value across power cycles.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "prec": {
+          "description": "Number of decimal places when displaying this sensor (0..=3).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "sensor_type": {
+          "description": "0 = custom (streamed from RX), 1 = calculated (derived from other sensors on-radio).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "sub_id": {
+          "description": "Sub-id of the physical sensor (firmware internal).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "unit": {
+          "description": "6-bit unit code (see FreedomTX `TelemetryUnit` enum — volts, amps, celsius, feet, metres, knots, rpm, ...).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        }
+      }
+    },
+    "TimerEditData": {
+      "type": "object",
+      "required": [
+        "countdown_beep",
+        "minute_beep",
+        "mode",
+        "name",
+        "persistent",
+        "start"
+      ],
+      "properties": {
+        "countdown_beep": {
+          "description": "Countdown notification style: 0 = off, 1 = beep, 2 = voice, 3 = haptic.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "minute_beep": {
+          "description": "If non-zero, emit a beep every minute of the timer.",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "mode": {
+          "description": "Timer mode / source. 0 = off; positive values reference a switch or channel that runs the timer while ON; negative = inverted.",
+          "type": "integer",
+          "format": "int16"
+        },
+        "name": {
+          "description": "Optional 3-character label shown on the timer bar.",
+          "type": "string"
+        },
+        "persistent": {
+          "description": "Persistence: 0 = don't persist, 1 = per-flight (reset on \"new flight\"), 2 = per-model (saved across power cycles).",
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        "start": {
+          "description": "Starting value in seconds. Used as the countdown start for countdown timers; ignored (stays at 0) for stopwatch mode.",
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
+    }
+  }
+}

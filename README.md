@@ -92,16 +92,3 @@ Bottom-center:messages
 Bottom-right: RSSI% · CRSF LQ
 Bottom row:   wind · trip dist · (Dolphin only: g-force)
 ```
-
-## Firmware drift notes
-
-- INAV 8 → 9 renamed three settings. For affected dumps, simple header swap
-  isn't enough; the `dji_rssi_source` → `dji_ch_rssi_source`, `controlrate_profile` → `use_control_profile`, and `mixer_pid_profile_linking` → `mixer_control_profile_linking` migrations are worth knowing about.
-- Baloo's Sea Duck rigging has `serialrx_inverted = ON` left over from a
-  pre-CRSF setup; CRSF works through the inverted UART fine, don't panic if
-  the flag looks unusual.
-- Swordfish's `feature -AIRMODE` is deliberate (glider-style low-throttle
-  handling).
-- Dolphin's safehome slot was cleared (was a stale Adelaide coord from an
-  online reference config). Re-set with local coords before relying on RTH
-  loitering at a non-launch waypoint.

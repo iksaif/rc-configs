@@ -1,0 +1,307 @@
+[
+  {
+    "name": "adjrange",
+    "description": "configure adjustment ranges",
+    "args": null
+  },
+  {
+    "name": "assert",
+    "description": "",
+    "args": null
+  },
+  {
+    "name": "aux",
+    "description": "configure modes",
+    "args": null
+  },
+  {
+    "name": "batch",
+    "description": "start or end a batch of commands",
+    "args": "start | end"
+  },
+  {
+    "name": "battery_profile",
+    "description": "change battery profile",
+    "args": "[<index>]"
+  },
+  {
+    "name": "beeper",
+    "description": "turn on/off beeper",
+    "args": "list\n\t<+|->[name]"
+  },
+  {
+    "name": "bind_rx",
+    "description": "initiate binding for RX SPI or SRXL2",
+    "args": null
+  },
+  {
+    "name": "blackbox",
+    "description": "configure blackbox fields",
+    "args": "list\n\t<+|->[name]"
+  },
+  {
+    "name": "bootlog",
+    "description": "show boot log",
+    "args": null
+  },
+  {
+    "name": "cli_delay",
+    "description": "CLI Delay",
+    "args": "Delay in ms"
+  },
+  {
+    "name": "color",
+    "description": "configure colors",
+    "args": null
+  },
+  {
+    "name": "control_profile",
+    "description": "change control profile",
+    "args": "[<index>]"
+  },
+  {
+    "name": "defaults",
+    "description": "reset to defaults and reboot",
+    "args": null
+  },
+  {
+    "name": "dfu",
+    "description": "DFU mode on reboot",
+    "args": null
+  },
+  {
+    "name": "diff",
+    "description": "list configuration changes from default",
+    "args": "[master|battery_profile|control_profile|mixer_profile|rates|all] {showdefaults}"
+  },
+  {
+    "name": "dump",
+    "description": "dump configuration",
+    "args": "[master|battery_profile|control_profile|mixer_profile|rates|all] {showdefaults}"
+  },
+  {
+    "name": "eleres_bind",
+    "description": "",
+    "args": null
+  },
+  {
+    "name": "exit",
+    "description": "",
+    "args": null
+  },
+  {
+    "name": "feature",
+    "description": "configure features",
+    "args": "list\n\t<+|->[name]"
+  },
+  {
+    "name": "flash_erase",
+    "description": "erase flash chip",
+    "args": null
+  },
+  {
+    "name": "flash_info",
+    "description": "show flash chip info",
+    "args": null
+  },
+  {
+    "name": "flash_read",
+    "description": "",
+    "args": "<length> <address>"
+  },
+  {
+    "name": "flash_write",
+    "description": "",
+    "args": "<address> <message>"
+  },
+  {
+    "name": "fwapproach",
+    "description": "Fixed Wing Approach Settings",
+    "args": null
+  },
+  {
+    "name": "geozone",
+    "description": "get or set geo zones",
+    "args": null
+  },
+  {
+    "name": "get",
+    "description": "get variable value",
+    "args": "[name]"
+  },
+  {
+    "name": "gpspassthrough",
+    "description": "passthrough gps to serial",
+    "args": null
+  },
+  {
+    "name": "gpssats",
+    "description": "show GPS satellites",
+    "args": null
+  },
+  {
+    "name": "gvar",
+    "description": "configure global variables",
+    "args": "<gvar> <default> <min> <max>\n\treset\n"
+  },
+  {
+    "name": "help",
+    "description": "",
+    "args": null
+  },
+  {
+    "name": "led",
+    "description": "configure leds",
+    "args": null
+  },
+  {
+    "name": "ledpinpwm",
+    "description": "start/stop PWM on LED pin, 0..100 duty ratio",
+    "args": "[<value>]\n"
+  },
+  {
+    "name": "logic",
+    "description": "configure logic conditions",
+    "args": "<rule> <enabled> <activatorId> <operation> <operand A type> <operand A value> <operand B type> <operand B value> <flags>\n\treset\n"
+  },
+  {
+    "name": "map",
+    "description": "configure rc channel order",
+    "args": "[<map>]"
+  },
+  {
+    "name": "memory",
+    "description": "view memory usage",
+    "args": null
+  },
+  {
+    "name": "mixer_profile",
+    "description": "change mixer profile",
+    "args": "[<index>]"
+  },
+  {
+    "name": "mmix",
+    "description": "custom motor mixer",
+    "args": null
+  },
+  {
+    "name": "mode_color",
+    "description": "configure mode and special colors",
+    "args": null
+  },
+  {
+    "name": "motor",
+    "description": "get/set motor",
+    "args": "<index> [<value>]"
+  },
+  {
+    "name": "msc",
+    "description": "switch into msc mode",
+    "args": null
+  },
+  {
+    "name": "osd_custom_elements",
+    "description": "configurable OSD custom elements",
+    "args": "<#> <part0 type> <part0 value> <part1 type> <part1 value> <part2 type> <part2 value> <visibility type> <visibility value> <text>\n"
+  },
+  {
+    "name": "osd_layout",
+    "description": "get or set the layout of OSD items",
+    "args": "[<layout> [<item> [<col> <row> [<visible>]]]]"
+  },
+  {
+    "name": "pid",
+    "description": "configurable PID controllers",
+    "args": "<#> <enabled> <setpoint type> <setpoint value> <measurement type> <measurement value> <P gain> <I gain> <D gain> <FF gain>\n\treset\n"
+  },
+  {
+    "name": "play_sound",
+    "description": "",
+    "args": "[<index>]\n"
+  },
+  {
+    "name": "resource",
+    "description": "view currently used resources",
+    "args": null
+  },
+  {
+    "name": "rxrange",
+    "description": "configure rx channel ranges",
+    "args": null
+  },
+  {
+    "name": "safehome",
+    "description": "safe home list",
+    "args": null
+  },
+  {
+    "name": "save",
+    "description": "save and reboot",
+    "args": null
+  },
+  {
+    "name": "sd_info",
+    "description": "sdcard info",
+    "args": null
+  },
+  {
+    "name": "serial",
+    "description": "configure serial ports",
+    "args": null
+  },
+  {
+    "name": "serialpassthrough",
+    "description": "passthrough serial data to port",
+    "args": "<id> [baud] [mode] [options]: passthrough to serial"
+  },
+  {
+    "name": "servo",
+    "description": "configure servos",
+    "args": null
+  },
+  {
+    "name": "set",
+    "description": "change setting",
+    "args": "[<name>=<value>]"
+  },
+  {
+    "name": "showdebug",
+    "description": "Show debug fields.",
+    "args": null
+  },
+  {
+    "name": "smix",
+    "description": "servo mixer",
+    "args": "<rule> <servo> <source> <rate> <speed> <conditionId>\n\treset\n"
+  },
+  {
+    "name": "status",
+    "description": "show status",
+    "args": null
+  },
+  {
+    "name": "tasks",
+    "description": "show task stats",
+    "args": null
+  },
+  {
+    "name": "temp_sensor",
+    "description": "change temp sensor settings",
+    "args": null
+  },
+  {
+    "name": "timer_output_mode",
+    "description": "get or set the outputmode for a given timer.",
+    "args": "[<timer> [<AUTO|MOTORS|SERVOS>]]"
+  },
+  {
+    "name": "version",
+    "description": "show version",
+    "args": null
+  },
+  {
+    "name": "wp",
+    "description": "waypoint list",
+    "args": null
+  }
+]
