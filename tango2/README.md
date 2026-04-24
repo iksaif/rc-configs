@@ -40,11 +40,15 @@ SF is momentary — it jumps back to off the instant you release. To turn it int
 
 1. **Logical Switches → L01**
    - Func: `Sticky`
-   - V1: `SF↑` (button press event)
-   - V2: `SF↑` (same event toggles it off next time)
+   - V1: `SF↓` (button press event — on this Tango, `↓` = PWM high = pressed)
+   - V2: `SF↓` (same event toggles it off next time)
 2. **Mixes → CH9**
    - Replace the current `SF` source with `L01`
    - Weight 100, no curve
+
+Tango 2 switch-notation quick reference: in the radio's menus, `S*↑` means
+PWM low (toward the ↑-arrow plastic label, unpressed for momentaries); `S*↓`
+means PWM high (toward the ↓-arrow, pressed). Same convention across SA-SF.
 
 **Strongly recommended:** add a Special Function playing a voice clip ("Auto tune on" / "Auto tune off") when L01 transitions. You really don't want to forget AUTO TUNE is active.
 
