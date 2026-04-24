@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tango 2 + INAV mode layout — Claude vs ChatGPT vs Gemini</title>
+<style>
+  :root {
+    --claude:  #c8703a;
+    --chatgpt: #10a37f;
+    --gemini:  #5587ed;
+    --bg:      #fbfaf7;
+    --card:    #ffffff;
+    --border:  #e2ded3;
+    --muted:   #6a6357;
+    --fg:      #2b2924;
+    --match:   #2fa96a;
+    --diff:    #d24a4a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0 0 24px; color: var(--muted); }
+
+  table.decisions {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 32px;
+    font-size: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  .decisions th, .decisions td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+  .decisions th { background: #f3efe6; font-weight: 600; }
+  .decisions tr:last-child td { border-bottom: none; }
+  .decisions td.claude-col  { border-left: 3px solid var(--claude); }
+  .decisions td.chatgpt-col { border-left: 3px solid var(--chatgpt); }
+  .decisions td.gemini-col  { border-left: 3px solid var(--gemini); }
+  .decisions td .same  { color: var(--match); font-weight: 600; }
+  .decisions td .diff  { color: var(--diff); font-weight: 600; }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: 4px solid;
+    padding: 16px 18px;
+    font-size: 13px;
+  }
+  .card.claude  { border-top-color: var(--claude); }
+  .card.chatgpt { border-top-color: var(--chatgpt); }
+  .card.gemini  { border-top-color: var(--gemini); }
+  .card h2 {
+    margin: 0 0 10px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .badge {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: white;
+  }
+  .badge.claude  { background: var(--claude); }
+  .badge.chatgpt { background: var(--chatgpt); }
+  .badge.gemini  { background: var(--gemini); }
+  .card h3 {
+    font-size: 13px;
+    margin: 14px 0 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .card ul { margin: 0; padding-left: 18px; }
+  .card code, .card pre {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+  }
+  .card pre {
+    background: #f5f2ea;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    overflow-x: auto;
+    margin: 0 0 8px;
+    white-space: pre;
+  }
+
+  .takeaways {
+    margin-top: 32px;
+    padding: 16px 18px;
+    background: #fff6e3;
+    border: 1px solid #f0dba3;
+    font-size: 14px;
+  }
+  .takeaways h2 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .takeaways ul { margin: 0; padding-left: 22px; }
+  .takeaways li + li { margin-top: 4px; }
+
+  footer {
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tango 2 + INAV mode layout — three proposals</h1>
+  <p>Same question, three agents. Green = unanimous agreement, red = disagreement.</p>
+</header>
+
+<table class="decisions">
+  <thead>
+    <tr>
+      <th style="width: 22%;">Decision</th>
+      <th style="width: 26%;">Claude</th>
+      <th style="width: 26%;">ChatGPT</th>
+      <th style="width: 26%;">Gemini</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>ARM</strong></td>
+      <td class="claude-col"><span class="diff">SA</span> (top-left 2-pos)</td>
+      <td class="chatgpt-col"><span class="same">SD</span> (top-right 2-pos)</td>
+      <td class="gemini-col"><span class="same">SD</span> (top-right 2-pos)</td>
+    </tr>
+    <tr>
+      <td><strong>Flight mode</strong> (ANGLE/ACRO/MANUAL)</td>
+      <td class="claude-col"><span class="diff">SC</span> (top-right 3-pos)</td>
+      <td class="chatgpt-col"><span class="same">SB</span> (top-left 3-pos)</td>
+      <td class="gemini-col"><span class="same">SB</span> (top-left 3-pos)</td>
+    </tr>
+    <tr>
+      <td><strong>NAV</strong> (LOITER + RTH)</td>
+      <td class="claude-col"><span class="diff">SB</span> (top-left 3-pos)</td>
+      <td class="chatgpt-col"><span class="same">SC</span> (top-right 3-pos)</td>
+      <td class="gemini-col"><span class="same">SC</span> (top-right 3-pos)</td>
+    </tr>
+    <tr>
+      <td><strong>NAV LAUNCH</strong></td>
+      <td class="claude-col"><span class="diff">SD</span> (top-right 2-pos)</td>
+      <td class="chatgpt-col"><span class="same">SA</span> (top-left 2-pos)</td>
+      <td class="gemini-col"><span class="same">SA</span> (top-left 2-pos)</td>
+    </tr>
+    <tr>
+      <td><strong>RTH position</strong> on nav switch</td>
+      <td class="claude-col"><span class="diff">HIGH</span> (push forward)</td>
+      <td class="chatgpt-col"><span class="same">LOW / down</span></td>
+      <td class="gemini-col"><span class="same">LOW / down</span></td>
+    </tr>
+    <tr>
+      <td><strong>LOITER position</strong> on nav switch</td>
+      <td class="claude-col"><span class="diff">LOW</span></td>
+      <td class="chatgpt-col"><span class="same">HIGH / up</span></td>
+      <td class="gemini-col"><span class="same">HIGH / up</span></td>
+    </tr>
+    <tr>
+      <td><strong>ANGLE position</strong> on mode switch</td>
+      <td class="claude-col"><span class="same">LOW</span></td>
+      <td class="chatgpt-col"><span class="same">LOW (up arrow notation)</span></td>
+      <td class="gemini-col"><span class="same">LOW</span></td>
+    </tr>
+    <tr>
+      <td><strong>BEEPER</strong></td>
+      <td class="claude-col"><span class="same">SE</span> momentary</td>
+      <td class="chatgpt-col"><span class="same">SE</span> momentary</td>
+      <td class="gemini-col"><span class="same">SE</span> momentary</td>
+    </tr>
+    <tr>
+      <td><strong>AUTO TUNE</strong></td>
+      <td class="claude-col"><span class="same">SF + sticky LS</span></td>
+      <td class="chatgpt-col"><span class="same">SF + sticky LS</span> (LS1 → CH9)</td>
+      <td class="gemini-col"><span class="same">SF + sticky LS</span> (L01 → CH10)</td>
+    </tr>
+    <tr>
+      <td><strong>PREARM</strong></td>
+      <td class="claude-col">Rejected (too much friction)</td>
+      <td class="chatgpt-col">Rejected (switch-limited)</td>
+      <td class="gemini-col">Rejected</td>
+    </tr>
+    <tr>
+      <td><strong>AIRMODE toggle</strong></td>
+      <td class="claude-col">Rejected</td>
+      <td class="chatgpt-col">Rejected</td>
+      <td class="gemini-col">Leave per plane default</td>
+    </tr>
+    <tr>
+      <td><strong>Per-plane differences</strong></td>
+      <td class="claude-col">None</td>
+      <td class="chatgpt-col">None</td>
+      <td class="gemini-col">None</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="cards">
+
+  <section class="card claude">
+    <h2>Claude <span class="badge claude">proposal</span></h2>
+    <h3>Rationale summary</h3>
+    <ul>
+      <li>Left hand = "safety hand": ARM on SA, NAV (LOITER/RTH) on SB. Nav can be reached without leaving the right stick.</li>
+      <li>Right hand = "flying hand": flight mode on SC, LAUNCH on SD.</li>
+      <li>ANGLE at LOW of flight-mode switch because panic flinch = pull toward body.</li>
+      <li>RTH at HIGH of nav switch (opposite-end of LOITER).</li>
+    </ul>
+    <h3>Aux block</h3>
+<pre>aux 0  0  0 1800 2100  # ARM SA HIGH
+aux 1 11  1  900 1300  # POSHOLD SB LOW
+aux 2 10  1 1800 2100  # RTH     SB HIGH
+aux 3  1  2  900 1300  # ANGLE   SC LOW
+aux 4 12  2 1800 2100  # MANUAL  SC HIGH
+aux 5 36  3 1800 2100  # LAUNCH  SD HIGH
+aux 6 13  4 1800 2100  # BEEPER  SE
+aux 7 21  5 1800 2100  # TUNE    SF→LS</pre>
+    <h3>Unique calls</h3>
+    <ul>
+      <li>Finger layout groups safety (ARM+NAV) on left hand.</li>
+      <li>Suggests alternative: temporarily swap LAUNCH↔AUTO TUNE on SD for tuning sessions, skip the logical switch entirely.</li>
+    </ul>
+  </section>
+
+  <section class="card chatgpt">
+    <h2>ChatGPT <span class="badge chatgpt">proposal</span></h2>
+    <h3>Rationale summary</h3>
+    <ul>
+      <li>Separates ARM (right, SD) from LAUNCH (left, SA) — can't accidentally hit both with one hand.</li>
+      <li>RTH at DOWN of SC because "panic flip to extreme" is natural and distinct.</li>
+      <li>LOITER at UP of SC.</li>
+      <li>ACRO = SB centered (no aux active).</li>
+    </ul>
+    <h3>Aux block</h3>
+<pre>aux 0  0  0 1800 2100  # ARM     SD high
+aux 1  1  1  900 1200  # ANGLE   SB low
+aux 2 12  1 1800 2100  # MANUAL  SB high
+aux 3 11  2  900 1200  # POSHOLD SC low
+aux 4 10  2 1800 2100  # RTH     SC high
+aux 5 36  3 1800 2100  # LAUNCH  SA high
+aux 6 21  4 1800 2100  # TUNE    LS1→CH9
+aux 7 13  5 1800 2100  # BEEPER  SE</pre>
+    <h3>Unique calls</h3>
+    <ul>
+      <li>Recommends voice callouts for AUTO TUNE on/off — "you really don't want to forget it's active".</li>
+      <li>Flags NAV LAUNCH re-entry in flight as the biggest operational gotcha.</li>
+      <li>Notes PREARM trade-off explicitly: reclaim SA if you later want it more than dedicated launch.</li>
+    </ul>
+  </section>
+
+  <section class="card gemini">
+    <h2>Gemini <span class="badge gemini">proposal</span></h2>
+    <h3>Rationale summary</h3>
+    <ul>
+      <li>Same channel map as ChatGPT (ARM=SD, MODE=SB, NAV=SC, LAUNCH=SA).</li>
+      <li>RTH at DOWN of SC — "strongest recovery mode on end-stop under stress".</li>
+      <li>LOITER at UP of SC.</li>
+      <li>Emphasises isolation: ARM separated from launch/tune/flight-mode.</li>
+    </ul>
+    <h3>Aux block</h3>
+<pre>aux 0  0  0 1800 2100  # ARM     SD
+aux 1  1  1  900 1300  # ANGLE   SB low
+aux 2 12  1 1700 2100  # MANUAL  SB high
+aux 3 10  2  900 1300  # RTH     SC low
+aux 4 11  2 1700 2100  # POSHOLD SC high
+aux 5 36  3 1700 2100  # LAUNCH  SA
+aux 6 13  4 1700 2100  # BEEPER  SE
+aux 7 21  5 1700 2100  # TUNE    SF toggle</pre>
+    <h3>Unique calls</h3>
+    <ul>
+      <li>Widest mid-position dead zones (uses 1700 not 1800 as the high-band start).</li>
+      <li>Explicit per-plane AIRMODE note (ON for Baloo/Dolphin, OFF for Swordfish — preserve builder intent).</li>
+      <li>Flags SB HIGH (MANUAL) as "dangerous for beginners" — worth a warning to self.</li>
+    </ul>
+  </section>
+
+</div>
+
+<div class="takeaways">
+  <h2>Where they converge</h2>
+  <ul>
+    <li><strong>ANGLE at LOW of the mode switch</strong> — all three.</li>
+    <li><strong>BEEPER on SE, AUTO TUNE on SF via a sticky logical switch</strong> — all three. Identical approach to the momentary-button problem.</li>
+    <li><strong>LAUNCH on a dedicated 2-position switch</strong> — all three.</li>
+    <li><strong>Skip PREARM in the baseline</strong> — all three.</li>
+    <li><strong>Single identical map across all three planes</strong> — all three.</li>
+  </ul>
+  <h2 style="margin-top: 16px;">Where they differ</h2>
+  <ul>
+    <li><strong>Claude puts ARM on left hand, LAUNCH on right hand</strong>. ChatGPT and Gemini do the opposite (ARM right, LAUNCH left). Neither is obviously wrong; it's about which side you trust for the "live motor" flick.</li>
+    <li><strong>Claude puts RTH at HIGH of nav switch</strong> (push forward for emergency). ChatGPT and Gemini put <strong>RTH at LOW</strong> (pull toward you). ChatGPT frames this as "panic flip to extreme = natural with right hand", Gemini as "end-stop = strongest mode". Claude frames HIGH as "opposite to LOITER at LOW, so muscle memory can't confuse them". Depends on which gesture you find more instinctive under stress.</li>
+    <li><strong>Claude offers a non-LS alternative for AUTO TUNE</strong> — temporary swap with LAUNCH on SD rather than configuring a sticky logical switch. Simpler Tango-side.</li>
+    <li><strong>ChatGPT and Gemini converged</strong> on essentially the same channel map, and on the "ARM and LAUNCH on opposite grips" philosophy.</li>
+  </ul>
+  <h2 style="margin-top: 16px;">Suggested decision path</h2>
+  <ul>
+    <li>If you already have muscle memory for <strong>ARM on the right grip</strong>, go with ChatGPT/Gemini — they're essentially the same.</li>
+    <li>If you want <strong>LAUNCH and ARM on opposite hands as a safety isolation rule</strong>, ChatGPT/Gemini.</li>
+    <li>If you want <strong>RTH reachable by pushing forward (same direction as "emergency, go away")</strong>, Claude.</li>
+    <li>If you want to <strong>skip EdgeTX logical-switch config entirely</strong> during initial tuning, Claude's alternative (swap LAUNCH↔AUTO TUNE on a single switch when tuning).</li>
+    <li>After the first tuning flights you can retune any of this — the important thing is to commit to ONE of these three and memorise it.</li>
+  </ul>
+</div>
+
+<footer>
+  Files: <code>tango2-inav-modes-claude.md</code> · <code>tango2-inav-modes-chatgpt.md</code> · <code>tango2-inav-modes-gemini.md</code>
+</footer>
+
+</body>
+</html>

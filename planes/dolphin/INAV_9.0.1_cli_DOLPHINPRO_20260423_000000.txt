@@ -1,0 +1,499 @@
+diff all
+
+# version
+# INAV/ATOMRCF405NAVI_DELUX 9.0.1 Apr 23 2026 / 00:00:00 (converted) 
+# GCC-13.2.1 20231009
+
+# ============================================================================
+# DOLPHIN — AtomRC Dolphin Pro (latest-gen, 800 mm 6S)
+# ============================================================================
+# Airframe
+#   Model:    AtomRC Dolphin Pro (the 800 mm variant — twin-boom V-tail
+#             pusher; this is the 2024+ redesign, not the 845 mm V1)
+#   Span:     800 mm        Length: 862 mm
+#   Wing:     ~16.96 dm²    Material: EPP
+#   Weight:   ~1.5 kg AUW (6S 21700); thrust:weight ~1.3-1.4
+# Power
+#   Motor:    AtomRC 2807 1100 kV (single pusher)
+#   Prop:     8x4  2-blade (8040)
+#   ESC:      BLS 50 A 6S
+#   Battery:  6S1P 21700 (stock); 6S 2200-3000 mAh LiPo also fits
+# Control
+#   Surfaces: 2x elevons on the main wing + movable V-tail on twin booms
+#   Servos:   4x — see smix below for wiring. Servo 3 center at 1440 µs
+#             (physical offset, not symmetric).
+# Electronics
+#   FC:       AtomRC F405 NAVI DELUX (ATOMRCF405NAVI_DELUX)
+#   IMU:      ICM-42605   Baro: SPL06   Mag: NONE
+#   Radio:    CRSF (ELRS / TBS)
+#   Video:    AVATAR HD + DJI O3/O4 compatible (dji_rssi_source = CRSF_LQ)
+#   GPS:      UBlox, Galileo on
+# Status:   untested in flight yet — settings pulled from online references
+# Endurance (est.): ~25-35 min cruise on 6S 21700 (4-5 Ah at 22 V)
+# Nav setup
+#   3 OSD layouts (primary + 2 alt screens) · RTH alt 50 m, no auto-land
+#   FS = RTH · bank 45° · launch climb 25°
+# ============================================================================
+
+# reset configuration to default settings
+defaults noreboot
+
+# resources
+
+# Timer overrides
+
+# Outputs [servo]
+servo 1 1050 2050 1550 100
+servo 2 1070 2070 1570 100
+servo 3 1000 2000 1440 100
+servo 4 1000 2000 1570 100
+
+# safehome
+#   Previously had stale Adelaide coords from the online reference config;
+#   now cleared. Re-enable with real coords before relying on it:
+#     safehome 0 1 <lat*1e7> <lon*1e7>    # e.g. 478564300 23413700 for Paris
+safehome 0 0 0 0
+
+# Fixed Wing Approach
+
+# geozone
+
+# geozone vertices
+
+# features
+#   -TX_PROF_SEL:       don't let radio switch PID profiles via channel
+#   -BLACKBOX:          logging feature OFF. The `blackbox …` lines below
+#                       still set the field list, but nothing is recorded
+#                       until this is flipped back on. Either intentional
+#                       (save flash wear / no SD card) or a leftover to
+#                       double-check.
+#   GPS:                required for nav
+#   PWM_OUTPUT_ENABLE:  explicit PWM on outputs
+#   FW_AUTOTRIM:        in-flight trim via switch
+feature -TX_PROF_SEL
+feature -BLACKBOX
+feature GPS
+feature PWM_OUTPUT_ENABLE
+feature FW_AUTOTRIM
+
+# beeper
+beeper -ON_USB
+
+# blackbox
+blackbox -NAV_ACC
+blackbox NAV_POS
+blackbox NAV_PID
+blackbox MAG
+blackbox ACC
+blackbox ATTI
+blackbox RC_DATA
+blackbox RC_COMMAND
+blackbox MOTORS
+blackbox -GYRO_RAW
+blackbox -PEAKS_R
+blackbox -PEAKS_P
+blackbox -PEAKS_Y
+blackbox SERVOS
+
+# Receiver: Channel map
+
+# Ports
+serial 3 2 115200 115200 0 115200
+serial 4 33554432 115200 115200 0 115200
+
+# LEDs
+
+# LED color
+
+# LED mode_color
+
+# Modes [aux]
+# ============================================================================
+# Unified flight-mode map across Baloo / Swordfish / Dolphin — Tango 2 layout
+# ============================================================================
+# Radio assignment (Tango 2 gamepad, left and right top grips):
+#   SA (top-left  2-pos) → CH8  / AUX4 → NAV LAUNCH
+#   SB (top-left  3-pos) → CH6  / AUX2 → flight mode (ANGLE · ACRO · MANUAL)
+#   SC (top-right 3-pos) → CH7  / AUX3 → nav stack   (LOITER · off · RTH)
+#   SD (top-right 2-pos) → CH5  / AUX1 → ARM
+#   SE (left shoulder, momentary) → CH10 / AUX6 → BEEPER (hold)
+#   SF (right shoulder, momentary) → LS1 → CH9 / AUX5 → AUTO TUNE (sticky toggle)
+#
+# INAV behaviour:
+#   - No flight-mode aux active ⇒ ACRO (so SB-mid = ACRO by absence).
+#   - RTH outranks POSHOLD, both override manual sticks.
+#   - AUTO TUNE needs a sustained aux band — SF via sticky Logical Switch L1.
+# ============================================================================
+
+aux 0  0  0 1800 2100    # ARM          on SD HIGH
+aux 1  1  1  900 1200    # ANGLE        on SB LOW
+aux 2 12  1 1800 2100    # MANUAL       on SB HIGH
+aux 3 11  2  900 1200    # NAV POSHOLD  on SC LOW   (loiter)
+aux 4 10  2 1800 2100    # NAV RTH      on SC HIGH  (safety)
+aux 5 36  3 1800 2100    # NAV LAUNCH   on SA HIGH  (opt-in)
+aux 6 21  4 1800 2100    # AUTO TUNE    on LS1 (SF sticky toggle)
+aux 7 13  5 1800 2100    # BEEPER       on SE HIGH  (hold)
+
+# Adjustments [adjrange]
+
+# Receiver rxrange
+
+# temp_sensor
+
+# Mission Control Waypoints [wp]
+#wp 0 invalid
+
+# ============================================================================
+# OSD layout 0 (AVATAR HD60, 60×22) — harmonized across Baloo/Swordfish/Dolphin
+# ============================================================================
+# Scan priority:
+#   - Speed + altitude flank the crosshair at eye level, plus sidebar tapes
+#     on the edges for peripheral rate-of-change (see master block).
+#   - Battery stack bottom-left, signal stack bottom-right.
+#   - Home direction + distance top-right, heading strip + timer top-center.
+#   - Messages / warnings centered on row 18.
+#   - Dolphin-only: g-force readout (aerobatic profile).
+# ============================================================================
+
+# Centered attitude reference
+osd_layout 0 2  29 10 V     # OSD_CROSSHAIRS
+osd_layout 0 3  29 8  V     # OSD_ARTIFICIAL_HORIZON
+osd_layout 0 4  29 8  V     # OSD_HORIZON_SIDEBARS (arcs next to AH)
+
+# Primary speed + altitude (numeric, flanking crosshair)
+osd_layout 0 13 14 10 V     # OSD_GPS_SPEED
+osd_layout 0 15 41 10 V     # OSD_ALTITUDE
+osd_layout 0 26 48 10 V     # OSD_VERTICAL_SPEED_INDICATOR (m/s)
+
+# Top-left — preflight / mode / identity
+osd_layout 0 14  1  1 V     # OSD_GPS_SATS
+osd_layout 0  7  1  2 V     # OSD_FLYMODE
+osd_layout 0  8  1  3 V     # OSD_CRAFT_NAME
+
+# Top-center — heading + timer
+osd_layout 0 34 24  2 V     # OSD_HEADING_GRAPH
+osd_layout 0  6 28  1 V     # OSD_FLYTIME
+
+# Top-right — home
+osd_layout 0 22 50  1 V     # OSD_HOME_DIR (arrow)
+osd_layout 0 23 52  1 V     # OSD_HOME_DIST
+
+# Bottom-center — messages / warnings
+osd_layout 0 30 14 18 V     # OSD_MESSAGES
+
+# Bottom-left — battery
+osd_layout 0  1  1 19 V     # OSD_MAIN_BATT_VOLTAGE
+osd_layout 0 32  1 20 V     # OSD_MAIN_BATT_CELL_VOLTAGE
+osd_layout 0 12  1 21 V     # OSD_MAH_DRAWN
+osd_layout 0 35 10 21 V     # OSD_EFFICIENCY_MAH_PER_KM
+
+# Bottom-right — signal
+osd_layout 0  0 54 19 V     # OSD_RSSI_VALUE
+osd_layout 0 110 54 20 V    # OSD_LQ_UPLINK (CRSF link quality)
+
+# Bottom row extras
+osd_layout 0 46 24 21 V     # OSD_WIND_SPEED_HORIZONTAL
+osd_layout 0 40 36 21 V     # OSD_TRIP_DIST
+osd_layout 0 100 52 21 V    # OSD_GFORCE (Dolphin-only, aerobatic)
+
+# --- Layouts 1 and 2 (unused — only layout 0 is active) ---
+# Kept the originals commented out as reference; uncomment the block you
+# want to re-enable and switch via the OSD alt-layout aux mode.
+#
+# osd_layout 1 0 42 0 H
+# osd_layout 1 1 1 8 V
+# osd_layout 1 6 5 0 H
+# osd_layout 1 7 28 1 H
+# osd_layout 1 8 13 14 H
+# osd_layout 1 9 0 12 H
+# osd_layout 1 11 2 10 V
+# osd_layout 1 12 1 10 H
+# osd_layout 1 13 2 14 H
+# osd_layout 1 14 46 0 V
+# osd_layout 1 15 47 5 V
+# osd_layout 1 22 25 16 V
+# osd_layout 1 23 2 16 H
+# osd_layout 1 25 49 6 V
+# osd_layout 1 27 11 8 H
+# osd_layout 1 28 1 7 H
+# osd_layout 1 30 15 20 H
+# osd_layout 1 32 1 9 H
+# osd_layout 1 33 1 6 H
+# osd_layout 1 34 25 0 H
+# osd_layout 1 35 2 16 H
+# osd_layout 1 40 2 18 H
+# osd_layout 1 41 1 2 H
+# osd_layout 1 42 1 1 H
+# osd_layout 1 46 2 19 H
+# osd_layout 1 85 3 9 H
+# osd_layout 1 104 12 19 H
+# osd_layout 1 110 37 0 V
+# osd_layout 1 112 31 0 V
+#
+# osd_layout 2 0 42 0 H
+# osd_layout 2 1 1 8 H
+# osd_layout 2 2 0 0 V
+# osd_layout 2 3 8 6 V
+# osd_layout 2 6 5 0 H
+# osd_layout 2 7 28 0 H
+# osd_layout 2 8 13 14 H
+# osd_layout 2 9 0 12 H
+# osd_layout 2 11 2 13 H
+# osd_layout 2 12 1 10 H
+# osd_layout 2 13 2 14 H
+# osd_layout 2 14 50 0 H
+# osd_layout 2 15 54 8 H
+# osd_layout 2 16 6 10 H
+# osd_layout 2 17 6 11 H
+# osd_layout 2 18 6 12 H
+# osd_layout 2 22 8 16 H
+# osd_layout 2 23 2 16 H
+# osd_layout 2 25 57 9 H
+# osd_layout 2 27 11 8 H
+# osd_layout 2 28 1 7 H
+# osd_layout 2 30 15 20 H
+# osd_layout 2 32 1 9 H
+# osd_layout 2 33 1 6 H
+# osd_layout 2 34 25 0 H
+# osd_layout 2 35 1 12 H
+# osd_layout 2 40 2 18 H
+# osd_layout 2 41 1 2 H
+# osd_layout 2 42 1 1 H
+# osd_layout 2 46 2 19 H
+# osd_layout 2 63 1 14 H
+# osd_layout 2 67 11 6 H
+# osd_layout 2 75 10 14 H
+# osd_layout 2 76 20 14 H
+# osd_layout 2 79 2 13 H
+# osd_layout 2 85 3 9 H
+# osd_layout 2 104 12 19 H
+# osd_layout 2 110 39 0 H
+# osd_layout 2 112 39 1 H
+# osd_layout 2 139 2 9 H
+
+# Programming: logic
+
+# Programming: global variables
+
+# Programming: PID controllers
+
+# OSD: custom elements
+
+# master
+set gyro_main_lpf_hz = 25
+set dynamic_gyro_notch_q = 250
+set dynamic_gyro_notch_min_hz = 30
+set gyro_zero_y = 1
+set gyro_zero_z = 2
+set ins_gravity_cmss =  981.018
+set gyro_adaptive_filter_min_hz = 20
+set acc_hardware = ICM42605
+set acczero_x = -4
+set acczero_y = -3
+set acczero_z = 10
+set accgain_x = 4102
+set accgain_y = 4099
+set accgain_z = 4109
+set align_mag = CW270FLIP
+set mag_hardware = NONE
+set baro_hardware = SPL06
+set serialrx_provider = CRSF
+set blackbox_rate_denom = 2
+set motor_pwm_protocol = STANDARD
+set failsafe_procedure = RTH
+set align_board_yaw = 1800
+set small_angle = 180
+set applied_defaults = 3
+set gps_ublox_use_galileo = ON
+set airmode_type = STICK_CENTER_ONCE
+set nav_wp_radius = 800
+set nav_wp_max_safe_distance = 500
+set nav_rth_allow_landing = NEVER
+set nav_rth_altitude = 5000
+set nav_fw_bank_angle = 45
+set nav_fw_control_smoothness = 2
+# nav_fw_launch_max_angle = 75 is very permissive — launch mode exits
+# only when the pitch angle falls below 75°. For a throw/release launch
+# the stock 30–45° usually works better. 75° is basically "exit when the
+# plane is upright" — deliberate for a near-vertical bungee / catapult,
+# surprising for a regular hand launch. Review.
+set nav_fw_launch_max_angle = 75
+set nav_fw_launch_motor_delay = 100
+set nav_fw_launch_max_altitude = 5000
+set nav_fw_launch_climb_angle = 25
+set nav_fw_allow_manual_thr_increase = ON
+set osd_video_system = AVATAR
+# osd_alt_alarm = 120 m (French VLOS / EASA Open-A1/A3 ceiling). Adjust if
+# you fly under different airspace rules. Set to 0 to disable.
+set osd_alt_alarm = 120
+set osd_crosshairs_style = AIRCRAFT
+set osd_left_sidebar_scroll = SPEED
+set osd_right_sidebar_scroll = ALTITUDE
+set osd_home_position_arm_screen = OFF
+set name = DOLPHINPRO
+set tz_automatic_dst = EU
+set dji_rssi_source = CRSF_LQ
+
+# INAV 9.x default is ALLOW_BYPASS already, so arming without a GPS fix is
+# possible today: hold full-right yaw (mode 2) while flipping the arm switch.
+# The check only fires if you have a GPS nav mode assigned in `aux` (RTH,
+# POSHOLD, WP, etc.). Uncomment the line below to switch to strict mode —
+# no bypass gesture will work, arm is blocked until GPS fix.
+# set nav_extra_arming_safety = ON
+
+# control_profile
+control_profile 1
+
+set fw_p_pitch = 15
+set fw_i_pitch = 5
+set fw_d_pitch = 5
+set fw_ff_pitch = 110
+set fw_p_roll = 15
+set fw_i_roll = 3
+set fw_d_roll = 7
+set fw_ff_roll = 65
+set fw_p_yaw = 20
+set fw_i_yaw = 0
+set fw_ff_yaw = 255
+set max_angle_inclination_rll = 550
+set dterm_lpf_hz = 10
+set fw_turn_assist_pitch_gain =  0.300
+set nav_fw_pos_z_p = 25
+set nav_fw_pos_z_d = 5
+set nav_fw_pos_xy_p = 70
+set d_boost_min =  1.000
+set d_boost_max =  1.000
+set fw_level_pitch_trim =  4.000
+set rc_expo = 30
+set rc_yaw_expo = 30
+set roll_rate = 18
+set pitch_rate = 9
+set yaw_rate = 4
+
+# --- control_profile 2 (unused — only profile 1 is flown) ---
+# control_profile 2
+#
+# set fw_p_pitch = 15
+# set fw_i_pitch = 5
+# set fw_d_pitch = 5
+# set fw_ff_pitch = 70
+# set fw_p_roll = 15
+# set fw_i_roll = 3
+# set fw_d_roll = 7
+# set fw_p_yaw = 20
+# set fw_i_yaw = 0
+# set fw_ff_yaw = 100
+# set max_angle_inclination_rll = 550
+# set dterm_lpf_hz = 10
+# set fw_turn_assist_pitch_gain =  0.300
+# set nav_fw_pos_z_p = 35
+# set nav_fw_pos_xy_p = 70
+# set d_boost_min =  1.000
+# set d_boost_max =  1.000
+# set rc_expo = 30
+# set rc_yaw_expo = 30
+# set roll_rate = 18
+# set pitch_rate = 9
+# set yaw_rate = 3
+
+# --- control_profile 3 (unused) ---
+# control_profile 3
+#
+# set fw_p_pitch = 15
+# set fw_i_pitch = 5
+# set fw_d_pitch = 5
+# set fw_ff_pitch = 70
+# set fw_p_roll = 15
+# set fw_i_roll = 3
+# set fw_d_roll = 7
+# set fw_p_yaw = 20
+# set fw_i_yaw = 0
+# set fw_ff_yaw = 100
+# set max_angle_inclination_rll = 550
+# set dterm_lpf_hz = 10
+# set fw_turn_assist_pitch_gain =  0.300
+# set nav_fw_pos_z_p = 35
+# set nav_fw_pos_xy_p = 70
+# set d_boost_min =  1.000
+# set d_boost_max =  1.000
+# set rc_expo = 30
+# set rc_yaw_expo = 30
+# set roll_rate = 18
+# set pitch_rate = 9
+# set yaw_rate = 3
+
+# mixer_profile
+mixer_profile 1
+
+set platform_type = AIRPLANE
+set model_preview_type = 8
+
+# Mixer: motor mixer
+#   Single pusher. No differential thrust.
+mmix reset
+
+mmix 0  1.000  0.000  0.000  0.000
+
+# Mixer: servo mixer — elevons on wing + twin V-tail surfaces
+#   inputs: 0 = roll, 1 = pitch, 2 = yaw
+#   Servo 1 ← -40% roll + -70% pitch   (left elevon)
+#   Servo 2 ← -40% roll +  70% pitch   (right elevon)
+#           → elevons get roll together (same sign) and pitch differentially
+#             (opposite signs). The +/-70 pitch rate means pitch authority
+#             is ~1.75x the roll authority on the elevons.
+#   Servo 3 ← -50% yaw                 (left V-tail)
+#   Servo 4 ← -50% yaw                 (right V-tail)
+#           → rudder-only V-tail; no pitch contribution from the V-tail.
+#             (If you want the V-tail to also handle pitch, add
+#              `smix 6 3 1 50 0 -1` and `smix 7 4 1 50 0 -1`.)
+smix reset
+
+smix 0 1 0 -40 0 -1
+smix 1 1 1 -70 0 -1
+smix 2 2 0 -40 0 -1
+smix 3 2 1 70 0 -1
+smix 4 3 2 -50 0 -1
+smix 5 4 2 -50 0 -1
+
+# mixer_profile
+mixer_profile 2
+
+
+# Mixer: motor mixer
+
+# Mixer: servo mixer
+
+# battery_profile
+battery_profile 1
+
+set battery_capacity = 3200
+set throttle_idle =  5.000
+
+# --- battery_profile 2 (unused) ---
+# battery_profile 2
+#
+# set throttle_idle =  5.000
+
+# --- battery_profile 3 (unused) ---
+# battery_profile 3
+#
+# set throttle_idle =  5.000
+
+# ----------------------------------------------------------------------------
+# Ideas to consider (not applied)
+# ----------------------------------------------------------------------------
+#  - feature -BLACKBOX but fields still configured: flip the feature back on
+#    if you actually want logs, or delete the field list if you don't.
+#  - nav_fw_launch_max_angle = 75: review; 45° is the sane default for a
+#    hand-thrown / bungee launch (see comment above).
+# ----------------------------------------------------------------------------
+
+# restore original profile selection
+control_profile 1
+mixer_profile 1
+battery_profile 1
+
+# save configuration
+save
+
+# 

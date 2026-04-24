@@ -1,0 +1,413 @@
+diff all
+
+# version
+# INAV/SPEEDYBEEF405WING 9.0.1 Feb 13 2026 / 06:49:52 (d44f2cf6) 
+# GCC-13.2.1 20231009
+
+# ============================================================================
+# BALOO — FliteTest Sea Duck (foam-board, amphibious twin pusher)
+# ============================================================================
+# Airframe
+#   Model:    FT Sea Duck (Conwing L-16 inspired, scratch-built foamboard)
+#   Span:     1422 mm       Length: ~940 mm (typical)
+#   Weight:   ~1300 g with electronics (measured); ~1450 g AUW w/ 3S 2200 mAh
+#             (FT lists 1110 g airframe-only)
+# Power (per FT recommendation)
+#   Motors:   2x 2212–2218 class, 1200 kV+ (425-sized)
+#   Prop:     10x4.5 on 3S  |  9x4.5 on 4S
+#   ESC:      25–40 A per motor
+#   Battery:  3S 2200 mAh minimum (4S works with smaller prop)
+# Airframe + control
+#   Servos:   4x 9 g — elevator, rudder, 2x flaperons
+#   Yaw:      combined rudder + differential thrust (mmix yaw ±0.3)
+# Electronics
+#   FC:       SpeedyBee F405 Wing   IMU: ICM-42605   Baro: SPL06   Mag: QMC5883
+#   Radio:    CRSF via inverted UART (serialrx_inverted = ON — vestigial from
+#             an earlier SBUS setup; CRSF works through the inverted pin on
+#             this wiring)
+#   Video:    AVATAR HD    GPS: UBlox (Galileo on)
+# Status:   untested in flight yet
+# Endurance (est.): ~20 min cruise on 3S 2200 mAh; longer with 3S 3000+
+# Nav setup
+#   RTH alt 50 m · WP radius 8 m · launch motor delay 100 ms, climb 25°
+# ============================================================================
+
+# start the command batch
+batch start
+
+# reset configuration to default settings
+defaults noreboot
+
+# resources
+
+# Timer overrides
+
+# Outputs [servo]
+# Per-servo: min, max, center (µs), rate%. Negative rate = reversed at FC.
+# Only servos 2 and 3 are overridden from defaults; 1 and 4 run default
+# ranges (1000/2000/1500/100).
+# TODO: label the physical surface each servo drives (e.g. "2 = elevator,
+#       3 = rudder, 1/4 = flaperons") to avoid guessing on the next retune.
+servo 2 1000 2000 1500 -100
+servo 3 1000 2000 1500 -100
+
+# safehome
+
+# Fixed Wing Approach
+
+# geozone
+
+# geozone vertices
+
+# features
+# Only delta-from-defaults listed here. SOFTSERIAL + GPS + PWM_OUTPUT_ENABLE
+# are explicitly on. OSD / TELEMETRY / BLACKBOX / LED_STRIP / AIRMODE are
+# whatever the SPEEDYBEEF405WING target defaults make them — check the
+# Configurator or `feature` in CLI if you need to know live state.
+# Fixed-wing AIRMODE: usually ON is a good default (low-speed authority);
+# Swordfish disables it, Baloo leaves it at target default — probably ON.
+feature SOFTSERIAL
+feature GPS
+feature PWM_OUTPUT_ENABLE
+
+# beeper
+
+# blackbox
+# Field selection (+ = include, - = exclude). This is the "what to record"
+# list; the blackbox *feature* flag is the master switch (enabled by default
+# on this target). Current choice trades raw gyro + per-axis peak detection
+# for a smaller log focused on nav + attitude + servos.
+blackbox -NAV_ACC
+blackbox NAV_POS
+blackbox NAV_PID
+blackbox MAG
+blackbox ACC
+blackbox ATTI
+blackbox RC_DATA
+blackbox RC_COMMAND
+blackbox MOTORS
+blackbox -GYRO_RAW
+blackbox -PEAKS_R
+blackbox -PEAKS_P
+blackbox -PEAKS_Y
+blackbox SERVOS
+
+# Receiver: Channel map
+map TAER
+
+# Ports
+serial 4 33554432 115200 115200 0 115200
+
+# LEDs
+
+# LED color
+
+# LED mode_color
+
+# Modes [aux]
+# ============================================================================
+# Unified flight-mode map across Baloo / Swordfish / Dolphin — Tango 2 layout
+# ============================================================================
+# Radio assignment (Tango 2 gamepad, left and right top grips):
+#   SA (top-left  2-pos) → CH8  / AUX4 → NAV LAUNCH
+#   SB (top-left  3-pos) → CH6  / AUX2 → flight mode (ANGLE · ACRO · MANUAL)
+#   SC (top-right 3-pos) → CH7  / AUX3 → nav stack   (LOITER · off · RTH)
+#   SD (top-right 2-pos) → CH5  / AUX1 → ARM
+#   SE (left shoulder, momentary) → CH10 / AUX6 → BEEPER (hold)
+#   SF (right shoulder, momentary) → LS1 → CH9 / AUX5 → AUTO TUNE (sticky toggle)
+#
+# INAV behaviour:
+#   - No flight-mode aux active ⇒ ACRO (so SB-mid = ACRO by absence).
+#   - RTH outranks POSHOLD, both override manual sticks.
+#   - AUTO TUNE needs a sustained aux band — SF via sticky Logical Switch L1.
+# ============================================================================
+
+aux 0  0  0 1800 2100    # ARM          on SD HIGH
+aux 1  1  1  900 1200    # ANGLE        on SB LOW
+aux 2 12  1 1800 2100    # MANUAL       on SB HIGH
+aux 3 11  2  900 1200    # NAV POSHOLD  on SC LOW   (loiter)
+aux 4 10  2 1800 2100    # NAV RTH      on SC HIGH  (safety)
+aux 5 36  3 1800 2100    # NAV LAUNCH   on SA HIGH  (opt-in)
+aux 6 21  4 1800 2100    # AUTO TUNE    on LS1 (SF sticky toggle)
+aux 7 13  5 1800 2100    # BEEPER       on SE HIGH  (hold)
+
+# Adjustments [adjrange]
+
+# Receiver rxrange
+
+# temp_sensor
+
+# Mission Control Waypoints [wp]
+#wp 0 invalid
+
+# ============================================================================
+# OSD layout 0 (AVATAR HD60, 60×22) — harmonized across Baloo/Swordfish/Dolphin
+# ============================================================================
+# Scan priority:
+#   - Speed + altitude flank the crosshair at eye level, plus sidebar tapes
+#     on the edges for peripheral rate-of-change (see master block).
+#   - Battery stack bottom-left, signal stack bottom-right.
+#   - Home direction + distance top-right, heading strip + timer top-center.
+#   - Messages / warnings centered on row 18.
+# ============================================================================
+
+# Centered attitude reference
+osd_layout 0 2  29 10 V     # OSD_CROSSHAIRS
+osd_layout 0 3  29 8  V     # OSD_ARTIFICIAL_HORIZON
+osd_layout 0 4  29 8  V     # OSD_HORIZON_SIDEBARS (arcs next to AH)
+
+# Primary speed + altitude (numeric, flanking crosshair)
+osd_layout 0 13 14 10 V     # OSD_GPS_SPEED
+osd_layout 0 15 41 10 V     # OSD_ALTITUDE
+osd_layout 0 26 48 10 V     # OSD_VERTICAL_SPEED_INDICATOR (m/s)
+
+# Top-left — preflight / mode / identity
+osd_layout 0 14  1  1 V     # OSD_GPS_SATS
+osd_layout 0  7  1  2 V     # OSD_FLYMODE
+osd_layout 0  8  1  3 V     # OSD_CRAFT_NAME
+
+# Top-center — heading + timer
+osd_layout 0 34 24  2 V     # OSD_HEADING_GRAPH
+osd_layout 0  6 28  1 V     # OSD_FLYTIME
+
+# Top-right — home
+osd_layout 0 22 50  1 V     # OSD_HOME_DIR (arrow)
+osd_layout 0 23 52  1 V     # OSD_HOME_DIST
+
+# Bottom-center — messages / warnings
+osd_layout 0 30 14 18 V     # OSD_MESSAGES
+
+# Bottom-left — battery
+osd_layout 0  1  1 19 V     # OSD_MAIN_BATT_VOLTAGE
+osd_layout 0 32  1 20 V     # OSD_MAIN_BATT_CELL_VOLTAGE
+osd_layout 0 12  1 21 V     # OSD_MAH_DRAWN
+osd_layout 0 35 10 21 V     # OSD_EFFICIENCY_MAH_PER_KM
+
+# Bottom-right — signal
+osd_layout 0  0 54 19 V     # OSD_RSSI_VALUE
+osd_layout 0 110 54 20 V    # OSD_LQ_UPLINK (CRSF link quality)
+
+# Bottom row extras
+osd_layout 0 46 24 21 V     # OSD_WIND_SPEED_HORIZONTAL
+osd_layout 0 40 36 21 V     # OSD_TRIP_DIST
+
+# Programming: logic
+
+# Programming: global variables
+
+# Programming: PID controllers
+
+# OSD: custom elements
+
+# master
+set gyro_main_lpf_hz = 25
+set dynamic_gyro_notch_q = 250
+set dynamic_gyro_notch_min_hz = 30
+set gyro_zero_y = -7
+set gyro_zero_z = 15
+set ins_gravity_cmss =  981.692
+set gyro_adaptive_filter_min_hz = 20
+set acc_hardware = ICM42605
+set acczero_x = -4
+set acczero_y = -6
+set acczero_z = 29
+set accgain_x = 4095
+set accgain_z = 4091
+set align_mag = CW270FLIP
+set mag_hardware = QMC5883
+set magzero_x = -305
+set magzero_y = -209
+set magzero_z = 555
+set maggain_x = 1213
+set maggain_y = 1321
+set maggain_z = 1192
+set baro_hardware = SPL06
+set serialrx_inverted = ON
+set blackbox_rate_denom = 2
+set motor_pwm_protocol = STANDARD
+set align_board_roll = 1800
+set small_angle = 180
+set applied_defaults = 3
+set gps_sbas_mode = AUTO
+set gps_ublox_use_galileo = ON
+set airmode_type = STICK_CENTER_ONCE
+set nav_wp_radius = 800
+set nav_wp_max_safe_distance = 500
+set failsafe_procedure = RTH
+set nav_rth_allow_landing = FS_ONLY
+set nav_rth_altitude = 5000
+set nav_fw_control_smoothness = 2
+set nav_fw_launch_motor_delay = 100
+set nav_fw_launch_max_altitude = 5000
+set nav_fw_launch_climb_angle = 25
+set osd_video_system = AVATAR
+set osd_crosshairs_style = AIRCRAFT
+set osd_left_sidebar_scroll = SPEED
+set osd_right_sidebar_scroll = ALTITUDE
+set name = BALOO
+
+# INAV 9.x default is ALLOW_BYPASS already, so arming without a GPS fix is
+# possible today: hold full-right yaw (mode 2) while flipping the arm switch.
+# The check only fires if you have a GPS nav mode assigned in `aux` (RTH,
+# POSHOLD, WP, etc.). Uncomment the line below to switch to strict mode —
+# no bypass gesture will work, arm is blocked until GPS fix.
+# set nav_extra_arming_safety = ON
+
+# control_profile
+control_profile 1
+
+set fw_p_pitch = 15
+set fw_i_pitch = 5
+set fw_d_pitch = 5
+set fw_ff_pitch = 80
+set fw_p_roll = 15
+set fw_i_roll = 3
+set fw_d_roll = 7
+set fw_p_yaw = 50
+set fw_i_yaw = 0
+set fw_d_yaw = 20
+set fw_ff_yaw = 255
+set dterm_lpf_hz = 10
+set fw_turn_assist_pitch_gain =  0.400
+set nav_fw_pos_z_p = 25
+set nav_fw_pos_z_d = 8
+set nav_fw_pos_xy_p = 55
+set d_boost_min =  1.000
+set d_boost_max =  1.000
+set rc_expo = 30
+set rc_yaw_expo = 30
+set roll_rate = 18
+set pitch_rate = 9
+set yaw_rate = 3
+
+# --- control_profile 2 (unused — only profile 1 is flown) ---
+# Kept commented so the diff can still round-trip through INAV CLI but
+# nothing gets applied to profile 2 at save time. Uncomment if you start
+# using a second profile.
+# control_profile 2
+#
+# set fw_p_pitch = 15
+# set fw_i_pitch = 5
+# set fw_d_pitch = 5
+# set fw_ff_pitch = 80
+# set fw_p_roll = 15
+# set fw_i_roll = 3
+# set fw_d_roll = 7
+# set fw_p_yaw = 50
+# set fw_i_yaw = 0
+# set fw_d_yaw = 20
+# set fw_ff_yaw = 255
+# set dterm_lpf_hz = 10
+# set fw_turn_assist_pitch_gain =  0.400
+# set nav_fw_pos_z_p = 25
+# set nav_fw_pos_z_d = 8
+# set nav_fw_pos_xy_p = 55
+# set d_boost_min =  1.000
+# set d_boost_max =  1.000
+# set rc_expo = 30
+# set rc_yaw_expo = 30
+# set roll_rate = 18
+# set pitch_rate = 9
+# set yaw_rate = 3
+
+# --- control_profile 3 (unused — see above) ---
+# control_profile 3
+#
+# set fw_p_pitch = 15
+# set fw_i_pitch = 5
+# set fw_d_pitch = 5
+# set fw_ff_pitch = 80
+# set fw_p_roll = 15
+# set fw_i_roll = 3
+# set fw_d_roll = 7
+# set fw_p_yaw = 50
+# set fw_i_yaw = 0
+# set fw_d_yaw = 20
+# set fw_ff_yaw = 255
+# set dterm_lpf_hz = 10
+# set fw_turn_assist_pitch_gain =  0.400
+# set nav_fw_pos_z_p = 25
+# set nav_fw_pos_z_d = 8
+# set nav_fw_pos_xy_p = 55
+# set d_boost_min =  1.000
+# set d_boost_max =  1.000
+# set rc_expo = 30
+# set rc_yaw_expo = 30
+# set roll_rate = 18
+# set pitch_rate = 9
+# set yaw_rate = 3
+
+# mixer_profile
+mixer_profile 1
+
+set platform_type = AIRPLANE
+set has_flaps = ON
+set model_preview_type = 26
+
+# Mixer: motor mixer
+#   mmix <index> <throttle> <roll> <pitch> <yaw>
+#   Two pushers, full throttle, ±0.3 yaw → differential thrust augments the
+#   rudder. No roll/pitch from motors (conventional-tail plane).
+mmix reset
+
+mmix 0  1.000  0.000  0.000  0.300
+mmix 1  1.000  0.000  0.000 -0.300
+
+# Mixer: servo mixer
+#   smix <rule> <servo> <input> <rate%> <speed> <condition>
+#   inputs: 0 = roll, 1 = pitch, 2 = yaw
+#   Servo 1 ← pitch  (elevator)
+#   Servo 2 ← roll   (left flaperon)
+#   Servo 3 ← roll   (right flaperon — add a second rule if you want
+#                      flaps/differential throw)
+#   Servo 4 ← yaw    (rudder)
+smix reset
+
+smix 0 1 1 100 0 -1
+smix 1 2 0 100 0 -1
+smix 2 3 0 100 0 -1
+smix 3 4 2 100 0 -1
+
+# mixer_profile
+mixer_profile 2
+
+
+# Mixer: motor mixer
+
+# Mixer: servo mixer
+
+# battery_profile
+battery_profile 1
+
+set throttle_idle =  5.000
+
+# --- battery_profile 2 (unused) ---
+# battery_profile 2
+#
+# set throttle_idle =  5.000
+
+# --- battery_profile 3 (unused) ---
+# battery_profile 3
+#
+# set throttle_idle =  5.000
+
+# ----------------------------------------------------------------------------
+# Ideas to consider (not applied)
+# ----------------------------------------------------------------------------
+#  - set osd_crosshairs_style = AIRCRAFT   # leveled-wing overlay, nicer for
+#                                           fixed-wing than the default dot
+#  - set osd_left_sidebar_scroll  = ALTITUDE
+#    set osd_right_sidebar_scroll = SPEED  # moving tapes in OSD
+#  - set nav_rth_altitude = ?              # 50 m is low if you fly near
+#                                           trees; 60–80 m is often safer
+# ----------------------------------------------------------------------------
+
+# restore original profile selection
+control_profile 1
+mixer_profile 1
+battery_profile 1
+
+# save configuration
+save
+
+# 
