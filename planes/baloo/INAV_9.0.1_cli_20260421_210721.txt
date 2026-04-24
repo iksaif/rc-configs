@@ -226,13 +226,10 @@ set serialrx_inverted = ON
 set blackbox_rate_denom = 2
 set motor_pwm_protocol = STANDARD
 set align_board_roll = 1800
-set small_angle = 180
 set applied_defaults = 3
 set gps_sbas_mode = AUTO
 set gps_ublox_use_galileo = ON
-set airmode_type = STICK_CENTER_ONCE
 set nav_wp_radius = 800
-set nav_wp_max_safe_distance = 500
 set failsafe_procedure = RTH
 set nav_rth_allow_landing = FS_ONLY
 set nav_rth_altitude = 5000
@@ -254,88 +251,16 @@ set name = BALOO
 # set nav_extra_arming_safety = ON
 
 # control_profile
+# All PIDs / rates / FFs left at INAV 9.0 stock defaults for a clean
+# first-flight baseline. Plan: hand-launch in ANGLE, verify attitude
+# response is sensible, then run AUTO TUNE for PID gains.
 control_profile 1
 
-set fw_p_pitch = 15
-set fw_i_pitch = 5
-set fw_d_pitch = 5
-set fw_ff_pitch = 80
-set fw_p_roll = 15
-set fw_i_roll = 3
-set fw_d_roll = 7
-set fw_p_yaw = 50
-set fw_i_yaw = 0
-set fw_d_yaw = 20
-set fw_ff_yaw = 255
-set dterm_lpf_hz = 10
-set fw_turn_assist_pitch_gain =  0.400
-set nav_fw_pos_z_p = 25
-set nav_fw_pos_z_d = 8
-set nav_fw_pos_xy_p = 55
-set d_boost_min =  1.000
-set d_boost_max =  1.000
-set rc_expo = 30
-set rc_yaw_expo = 30
-set roll_rate = 18
-set pitch_rate = 9
-set yaw_rate = 3
-
 # --- control_profile 2 (unused — only profile 1 is flown) ---
-# Kept commented so the diff can still round-trip through INAV CLI but
-# nothing gets applied to profile 2 at save time. Uncomment if you start
-# using a second profile.
 # control_profile 2
-#
-# set fw_p_pitch = 15
-# set fw_i_pitch = 5
-# set fw_d_pitch = 5
-# set fw_ff_pitch = 80
-# set fw_p_roll = 15
-# set fw_i_roll = 3
-# set fw_d_roll = 7
-# set fw_p_yaw = 50
-# set fw_i_yaw = 0
-# set fw_d_yaw = 20
-# set fw_ff_yaw = 255
-# set dterm_lpf_hz = 10
-# set fw_turn_assist_pitch_gain =  0.400
-# set nav_fw_pos_z_p = 25
-# set nav_fw_pos_z_d = 8
-# set nav_fw_pos_xy_p = 55
-# set d_boost_min =  1.000
-# set d_boost_max =  1.000
-# set rc_expo = 30
-# set rc_yaw_expo = 30
-# set roll_rate = 18
-# set pitch_rate = 9
-# set yaw_rate = 3
 
-# --- control_profile 3 (unused — see above) ---
+# --- control_profile 3 (unused) ---
 # control_profile 3
-#
-# set fw_p_pitch = 15
-# set fw_i_pitch = 5
-# set fw_d_pitch = 5
-# set fw_ff_pitch = 80
-# set fw_p_roll = 15
-# set fw_i_roll = 3
-# set fw_d_roll = 7
-# set fw_p_yaw = 50
-# set fw_i_yaw = 0
-# set fw_d_yaw = 20
-# set fw_ff_yaw = 255
-# set dterm_lpf_hz = 10
-# set fw_turn_assist_pitch_gain =  0.400
-# set nav_fw_pos_z_p = 25
-# set nav_fw_pos_z_d = 8
-# set nav_fw_pos_xy_p = 55
-# set d_boost_min =  1.000
-# set d_boost_max =  1.000
-# set rc_expo = 30
-# set rc_yaw_expo = 30
-# set roll_rate = 18
-# set pitch_rate = 9
-# set yaw_rate = 3
 
 # mixer_profile
 mixer_profile 1
@@ -392,14 +317,31 @@ set throttle_idle =  5.000
 # set throttle_idle =  5.000
 
 # ----------------------------------------------------------------------------
-# Ideas to consider (not applied)
+# First-flight + tuning notes
 # ----------------------------------------------------------------------------
-#  - set osd_crosshairs_style = AIRCRAFT   # leveled-wing overlay, nicer for
-#                                           fixed-wing than the default dot
-#  - set osd_left_sidebar_scroll  = ALTITUDE
-#    set osd_right_sidebar_scroll = SPEED  # moving tapes in OSD
-#  - set nav_rth_altitude = ?              # 50 m is low if you fly near
-#                                           trees; 60–80 m is often safer
+#  PIDs / rates / FFs / expo / d_boost / dterm_lpf / airmode_type / small_angle /
+#  nav_wp_max_safe_distance / nav_fw_pos_z_* are all at stock INAV 9.0 defaults.
+#  Why: this plane has never flown; the previous values looked copy-pasted from
+#  another airframe (fw_ff_yaw = 255 maxed out, fw_p_pitch 3x default, etc.)
+#  which risks PIO / yaw snaking on first throw.
+#
+#  Plan:
+#   1. Bench-test before flight:
+#        - right aileron stick: RIGHT flaperon goes UP, LEFT goes DOWN
+#          (both have servo rate -100; if they move the same direction,
+#          flip one rate to +100 in the `servo` line above)
+#        - nose-up tilt: AH tilts up; roll-right tilt: AH tilts right
+#          (board is mounted upside-down on roll, align_board_roll = 1800)
+#   2. First flight in ANGLE (SB ↑), conservative throttle, gentle S-turns.
+#        - if oscillating -> flip SB to MID (ACRO) or ↓ (MANUAL) and land.
+#   3. Once stable, climb to 80+ m and run AUTO TUNE (L1 pot) for 30-60 s
+#      of figure-8s.
+#   4. After landing, consider: set nav_rth_altitude higher if the field has
+#      trees > 50 m nearby.
+#
+#  AIRMODE status: ON by default on SPEEDYBEEF405WING target
+#  (FEATURE_AIRMODE in target.h). Not explicitly toggled here, so it's on.
+#  Expect servos to chatter while armed at idle throttle — normal.
 # ----------------------------------------------------------------------------
 
 # restore original profile selection
