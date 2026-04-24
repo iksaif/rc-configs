@@ -19,10 +19,10 @@ Plus two gimbals (mode 2), trim wheel, and menu rocker. That's the whole switch 
 
 | Channel | Source | Role                                | Notes |
 |---------|--------|-------------------------------------|-------|
-| CH5     | SD     | **ARM**                             | binary — never shared |
+| CH5     | SA     | **ARM**                             | "A for Arm" — left 2-pos, binary, never shared |
 | CH6     | SB     | Flight mode: ANGLE / — / MANUAL     | mid = no aux active = ACRO fallback |
-| CH7     | SC     | Nav: LOITER / — / RTH               | RTH on HIGH end-stop |
-| CH8     | SA     | NAV LAUNCH                          | deliberately opt-in |
+| CH7     | SC     | Nav: — / LOITER / RTH               | LOITER on MID detent; RTH on HIGH end-stop; LOW = no nav (clean boot) |
+| CH8     | SD     | NAV LAUNCH                          | right 2-pos, deliberately opt-in |
 | CH9     | SF (→ L01) | AUTO TUNE                       | needs sticky Logical Switch — see below |
 | CH10    | SE     | BEEPER                              | hold-to-beep |
 
@@ -30,8 +30,8 @@ CH5 = INAV AUX1, CH6 = AUX2, and so on (AUX is zero-indexed in the `aux` command
 
 ## Muscle memory
 
-- **Left hand** — thumb on gimbal, index on SA (launch enable), middle/ring on SB (flight mode). Pull-toward-you = ANGLE, push-away = MANUAL.
-- **Right hand** — thumb on gimbal, index on SC (nav — pull for LOITER, push for RTH), middle on SD (ARM).
+- **Left hand** — thumb on gimbal, index on **SA (ARM)**, middle/ring on SB (flight mode). Pull-toward-you = ANGLE, push-away = MANUAL.
+- **Right hand** — thumb on gimbal, index on SC (nav — center for LOITER, push for RTH, pull for nothing), middle on **SD (LAUNCH)**.
 - **Shoulders** — SE for beeper, SF for autotune toggle.
 
 ## Sticky Logical Switch for AUTO TUNE

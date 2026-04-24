@@ -56,14 +56,14 @@ Tango 2 switches → INAV modes:
 
 | Tango 2 switch     | Position | Mode                     |
 |--------------------|----------|--------------------------|
-| SD (top-right 2-pos)| HIGH    | ARM                      |
+| SA (top-left 2-pos) | HIGH    | ARM ("A for Arm")        |
 | SB (top-left 3-pos) | LOW     | ANGLE                    |
 | SB                 | MID      | (no flight-mode aux = ACRO fallback) |
 | SB                 | HIGH     | MANUAL                   |
-| SC (top-right 3-pos)| LOW     | NAV POSHOLD (loiter)     |
-| SC                 | MID      | —                        |
+| SC (top-right 3-pos)| LOW     | — (no nav, clean boot state) |
+| SC                 | MID      | NAV POSHOLD (loiter, detent) |
 | SC                 | HIGH     | NAV RTH                  |
-| SA (top-left 2-pos) | HIGH    | NAV LAUNCH (opt-in)      |
+| SD (top-right 2-pos)| HIGH    | NAV LAUNCH (opt-in)      |
 | SE (shoulder)      | press    | BEEPER (hold)            |
 | SF (shoulder)      | toggle   | AUTO TUNE (via Logical Switch L01, sticky) |
 
@@ -71,10 +71,10 @@ Channel mapping (Tango 2 mixer → CRSF):
 
 | Channel | Source | Role       |
 |---------|--------|------------|
-| CH5     | SD     | ARM        |
+| CH5     | SA     | ARM        |
 | CH6     | SB     | Flight mode|
 | CH7     | SC     | NAV        |
-| CH8     | SA     | Launch     |
+| CH8     | SD     | Launch     |
 | CH9     | L01    | Auto tune  |
 | CH10    | SE     | Beeper     |
 

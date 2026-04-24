@@ -116,10 +116,10 @@ serial 4 33554432 115200 115200 0 115200
 # Unified flight-mode map across Baloo / Swordfish / Dolphin — Tango 2 layout
 # ============================================================================
 # Radio assignment (Tango 2 gamepad, left and right top grips):
-#   SA (top-left  2-pos) → CH8  / AUX4 → NAV LAUNCH
+#   SD (top-right 2-pos) → CH8  / AUX4 → NAV LAUNCH
 #   SB (top-left  3-pos) → CH6  / AUX2 → flight mode (ANGLE · ACRO · MANUAL)
 #   SC (top-right 3-pos) → CH7  / AUX3 → nav stack   (LOITER · off · RTH)
-#   SD (top-right 2-pos) → CH5  / AUX1 → ARM
+#   SA (top-left  2-pos) → CH5  / AUX1 → ARM
 #   SE (left shoulder, momentary) → CH10 / AUX6 → BEEPER (hold)
 #   SF (right shoulder, momentary) → LS1 → CH9 / AUX5 → AUTO TUNE (sticky toggle)
 #
@@ -129,12 +129,12 @@ serial 4 33554432 115200 115200 0 115200
 #   - AUTO TUNE needs a sustained aux band — SF via sticky Logical Switch L1.
 # ============================================================================
 
-aux 0  0  0 1800 2100    # ARM          on SD HIGH
+aux 0  0  0 1800 2100    # ARM          on SA HIGH
 aux 1  1  1  900 1200    # ANGLE        on SB LOW
 aux 2 12  1 1800 2100    # MANUAL       on SB HIGH
-aux 3 11  2  900 1200    # NAV POSHOLD  on SC LOW   (loiter)
+aux 3 11  2 1300 1700    # NAV POSHOLD  on SC MID   (loiter — detent pos)
 aux 4 10  2 1800 2100    # NAV RTH      on SC HIGH  (safety)
-aux 5 36  3 1800 2100    # NAV LAUNCH   on SA HIGH  (opt-in)
+aux 5 36  3 1800 2100    # NAV LAUNCH   on SD HIGH  (opt-in)
 aux 6 21  4 1800 2100    # AUTO TUNE    on LS1 (SF sticky toggle)
 aux 7 13  5 1800 2100    # BEEPER       on SE HIGH  (hold)
 
