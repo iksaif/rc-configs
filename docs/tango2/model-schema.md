@@ -10,14 +10,18 @@ Flat DTO for the model editor page. Mixers are included as a full 64-row list (t
 - **`curves`** — *array of [CurveEditData](#curveeditdata)* — Up to 32 curves referenced by mixers and expos (`curve_type > 0` ⇒ referenced by id; `curve_value` is the point array offset).
 - **`custom_functions`** — *array of [CustomFunctionEditData](#customfunctioneditdata)* — Up to 64 "Special Functions" — switch-driven actions such as playing a sound, resetting a timer, adjusting a GVar, overriding a channel, etc.
 - **`expos`** — *array of [ExpoEditData](#expoeditdata)* — Input expos — shape raw stick/pot deflection into the values that the mixer sees. Up to 64 rows.
+- **`failsafe_channels`** — *array of integer* — Failsafe channel values — what each output channel should hold when the link is lost (if the module's failsafe mode is "custom"). Range -1024..=1023 ≡ -100%..+100%; 0 = centre, -1024 = full low. Tango has 32 channels — one entry per CHn (CH1 = `failsafe_channels[0]`).
 - **`filename`** — *string* — Filename of the model on disk, typically `modelN.bin`.
 - **`flight_modes`** — *array of [FlightModeEditData](#flightmodeeditdata)* — Up to 9 flight modes. `flight_modes[0]` is the default mode (always active when no other FM's switch is); 1..=8 activate by switch.
 - **`limits`** — *array of [LimitEditData](#limiteditdata)* — Per-output-channel clamps, offsets, inversion and optional curve. One row per channel (CH1..CH16+).
 - **`logical_switches`** — *array of [LogicalSwitchEditData](#logicalswitcheditdata)* — 64 logical switches (L1..L64). A logical switch is a boolean computed from other switches/sources/sensors/timers; it can then be used anywhere a real switch can.
 - **`mixers`** — *array of [MixerEditData](#mixereditdata)* — Full 64-row mixer table. Each row combines a source (stick, switch, channel, ...) into a destination channel with weight/offset/curve. Rows with `src_raw == 0` are empty/unused.
 - **`name`** — *string* — Model name shown on the TX screen. Up to 10 characters (zchar-encoded in the binary; plain UTF-8 here).
+- **`pots_warn_enabled`** — *integer* — Pots warning enable bitmask. Tango has no physical pots, so this is usually 0 — kept here so it round-trips correctly on save.
 - **`slot`** — *integer* — Zero-based index of this model's slot on the SD card (0 = first).
+- **`switch_warnings`** — *array of [SwitchWarningEditData](#switchwarningeditdata)* — Startup switch warnings — one entry per physical switch (SA..SF on Tango). Tells the radio "warn if this switch isn't in the expected position when the model is loaded".
 - **`telemetry_sensors`** — *array of [TelemetrySensorEditData](#telemetrysensoreditdata)* — Up to 60 telemetry sensors streamed by the RX/receiver. Most fields are populated by the firmware at runtime; only `label` is user-editable.
+- **`thr_trace_src`** — *integer* — Throttle-trace source: which source the radio's throttle-based timer modes (THR / THR_REL / THR_TRG) follow. 0 = the throttle stick; 1..=N references a channel (CHn).
 - **`timers`** — *array of [TimerEditData](#timereditdata)* — The three user-configurable timers. `timers[0]` is Timer 1 on the radio.
 
 ## CurveEditData
@@ -124,6 +128,14 @@ One `LogicalSwitchData` entry — a derived boolean switch that can be used anyw
 - **`src_raw`** — *integer* — Raw source index — sticks (Rud/Thr/Ele/Ail), pots, switches, channels, logical switches, telemetry sensors, etc. Use `src_label` for the human-readable name.
 - **`switch`** — *integer* — Signed 9-bit switch reference (SWSRC). The row is only active while this switch is ON. 0 = always active.
 - **`weight`** — *integer* — Weight applied to the source, as a signed 11-bit value mapped to percent: -1024 = -100%, 0 = 0%, 1023 = +100%. Full range -1024..=1023.
+
+## SwitchWarningEditData
+
+One physical switch's startup-warning configuration. The radio refuses to continue past the model-load splash if the switch isn't in `desired` when `enabled` is true.
+
+- **`desired`** — *string* — Required position at startup. One of: `"up"` (↑, PWM low), `"mid"` (- middle of a 3-pos), `"down"` (↓, PWM high). For 2-pos switches use `"up"` or `"down"`; `"mid"` is harmless but never matched.
+- **`enabled`** — *boolean* — Whether the warning is active. `false` = the radio won't complain about this switch's position at startup. (Note: the firmware stores this inverted in `switchWarningEnable` — bit set = disabled — but the DTO uses the user-intuitive sense.)
+- **`letter`** — *string* — Switch letter — "A" for SA, "B" for SB, ..., "F" for SF.
 
 ## TelemetrySensorEditData
 

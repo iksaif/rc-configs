@@ -2,6 +2,41 @@ slot: 4
 filename: model5.bin
 active: true
 name: plane
+# Timer 1 — flight time, runs while SA↓ (armed), persists per-flight.
+# mode encoding: 0=off, 1=ABS, 2=THR, 3=THR_REL, 4=THR_TRG, then
+# (5 + (swsrc-1)) for switch-driven. SA↓ = swsrc 3 → mode = 5 + 2 = 7.
+timers:
+- i: 0
+  mode: 7
+  minute_beep: 1
+  persistent: 1
+  name: Flt
+# Startup switch-warnings — SA/SB/SC/SD must be ↑ (unpressed / PWM low) at
+# model load. SE and SF are momentary shoulder buttons that spring back to ↑
+# on their own, so warning on them is noise — always unpressed when idle.
+switch_warnings:
+- i: 0
+  letter: A
+  enabled: true
+  desired: up
+- i: 1
+  letter: B
+  enabled: true
+  desired: up
+- i: 2
+  letter: C
+  enabled: true
+  desired: up
+- i: 3
+  letter: D
+  enabled: true
+  desired: up
+- i: 4
+  letter: E
+  desired: up
+- i: 5
+  letter: F
+  desired: up
 mixers:
 - i: 0
   weight: 100
@@ -61,8 +96,8 @@ mixers:
   index: 8
   weight: 100
   dest_ch: 8
-  src_raw: 94
-  src_label: SF
+  src_raw: 95
+  src_label: L1
   name: AutoTune
 - i: 9
   index: 9
@@ -571,10 +606,14 @@ curves:
 - i: 31
   index: 31
 logical_switches:
+# L01 — STICKY toggle for AUTO TUNE: each rising edge of SF↓ flips state.
+# func 18 = LS_FUNC_STICKY (SR latch); v1 = SET edge, v2 = RESET edge.
+# When v1 == v2 == same momentary, the lastValue.last bit alternates
+# correctly between checking v1/v2, giving press-on / press-off.
 - i: 0
-  func: 8
-  v1: 12
-  v1_label: SD↓
+  func: 18
+  v1: 18
+  v1_label: SF↓
   v2: 18
   v3_label: '---'
   andsw_label: '---'
@@ -1248,60 +1287,54 @@ custom_functions:
   - null
   - null
   - null
+# SF2 — SB↓ (HIGH = aux 2 active = MANUAL per the INAV map). Was "cruise"
+# which doesn't match anything in your aux block.
 - i: 1
   index: 1
   switch: 6
   switch_label: SB↓
   func: 11
-  play_name: cruise
-  all_val: 29283
-  all_mode: 117
-  all_param: 105
-  all_spare: 25971
+  play_name: manmod
   payload_raw:
-  - 99
-  - 114
-  - 117
-  - 105
-  - 115
-  - 101
+  - 109
+  - 97
+  - 110
+  - 109
+  - 111
+  - 100
   - null
   - null
+# SF3 — SB↑ (LOW = aux 1 active = ANGLE). Was "manual" — the swap above.
 - i: 2
   index: 2
   switch: 4
   switch_label: SB↑
   func: 11
-  play_name: manual
-  all_val: 24941
-  all_mode: 110
-  all_param: 117
-  all_spare: 27745
+  play_name: angmod
   payload_raw:
-  - 109
   - 97
   - 110
-  - 117
-  - 97
-  - 108
+  - 103
+  - 109
+  - 111
+  - 100
   - null
   - null
+# SF4 — SB- (mid: neither aux 1 nor aux 2 active → INAV default = ACRO).
+# Was "auto" which is misleading.
 - i: 3
   index: 3
   switch: 5
   switch_label: SB-
   func: 11
-  play_name: auto
-  all_val: 30049
-  all_mode: 116
-  all_param: 111
+  play_name: acrmod
   payload_raw:
   - 97
-  - 117
-  - 116
+  - 99
+  - 114
+  - 109
   - 111
-  - null
-  - null
+  - 100
   - null
   - null
 - i: 4
@@ -1380,12 +1413,22 @@ custom_functions:
   - 109
   - null
   - null
+# CF9 — when L01 turns ON, announce. swsrc 27 = L1 (logical switches start
+# at 27 in SWSRC space, after the 18 switch positions and 8 trim entries).
+# play_name uses gyroon.wav as a placeholder — see notes below to record
+# atunon.wav / atunof.wav (6-char ASCII filenames) for accurate callouts.
 - i: 8
   index: 8
-  switch_label: '---'
+  switch: 27
+  switch_label: L1
+  func: 11
+  play_name: gyroon
 - i: 9
   index: 9
-  switch_label: '---'
+  switch: -27
+  switch_label: '!L1'
+  func: 11
+  play_name: gyroof
 - i: 10
   index: 10
   switch_label: '---'

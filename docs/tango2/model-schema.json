@@ -8,14 +8,18 @@
     "curves",
     "custom_functions",
     "expos",
+    "failsafe_channels",
     "filename",
     "flight_modes",
     "limits",
     "logical_switches",
     "mixers",
     "name",
+    "pots_warn_enabled",
     "slot",
+    "switch_warnings",
     "telemetry_sensors",
+    "thr_trace_src",
     "timers"
   ],
   "properties": {
@@ -42,6 +46,14 @@
       "type": "array",
       "items": {
         "$ref": "#/definitions/ExpoEditData"
+      }
+    },
+    "failsafe_channels": {
+      "description": "Failsafe channel values — what each output channel should hold when the link is lost (if the module's failsafe mode is \"custom\"). Range -1024..=1023 ≡ -100%..+100%; 0 = centre, -1024 = full low. Tango has 32 channels — one entry per CHn (CH1 = `failsafe_channels[0]`).",
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "format": "int16"
       }
     },
     "filename": {
@@ -80,11 +92,24 @@
       "description": "Model name shown on the TX screen. Up to 10 characters (zchar-encoded in the binary; plain UTF-8 here).",
       "type": "string"
     },
+    "pots_warn_enabled": {
+      "description": "Pots warning enable bitmask. Tango has no physical pots, so this is usually 0 — kept here so it round-trips correctly on save.",
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0.0
+    },
     "slot": {
       "description": "Zero-based index of this model's slot on the SD card (0 = first).",
       "type": "integer",
       "format": "uint",
       "minimum": 0.0
+    },
+    "switch_warnings": {
+      "description": "Startup switch warnings — one entry per physical switch (SA..SF on Tango). Tells the radio \"warn if this switch isn't in the expected position when the model is loaded\".",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SwitchWarningEditData"
+      }
     },
     "telemetry_sensors": {
       "description": "Up to 60 telemetry sensors streamed by the RX/receiver. Most fields are populated by the firmware at runtime; only `label` is user-editable.",
@@ -92,6 +117,12 @@
       "items": {
         "$ref": "#/definitions/TelemetrySensorEditData"
       }
+    },
+    "thr_trace_src": {
+      "description": "Throttle-trace source: which source the radio's throttle-based timer modes (THR / THR_REL / THR_TRG) follow. 0 = the throttle stick; 1..=N references a channel (CHn).",
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0.0
     },
     "timers": {
       "description": "The three user-configurable timers. `timers[0]` is Timer 1 on the radio.",
@@ -633,6 +664,29 @@
           "description": "Weight applied to the source, as a signed 11-bit value mapped to percent: -1024 = -100%, 0 = 0%, 1023 = +100%. Full range -1024..=1023.",
           "type": "integer",
           "format": "int16"
+        }
+      }
+    },
+    "SwitchWarningEditData": {
+      "description": "One physical switch's startup-warning configuration. The radio refuses to continue past the model-load splash if the switch isn't in `desired` when `enabled` is true.",
+      "type": "object",
+      "required": [
+        "desired",
+        "enabled",
+        "letter"
+      ],
+      "properties": {
+        "desired": {
+          "description": "Required position at startup. One of: `\"up\"` (↑, PWM low), `\"mid\"` (- middle of a 3-pos), `\"down\"` (↓, PWM high). For 2-pos switches use `\"up\"` or `\"down\"`; `\"mid\"` is harmless but never matched.",
+          "type": "string"
+        },
+        "enabled": {
+          "description": "Whether the warning is active. `false` = the radio won't complain about this switch's position at startup. (Note: the firmware stores this inverted in `switchWarningEnable` — bit set = disabled — but the DTO uses the user-intuitive sense.)",
+          "type": "boolean"
+        },
+        "letter": {
+          "description": "Switch letter — \"A\" for SA, \"B\" for SB, ..., \"F\" for SF.",
+          "type": "string"
         }
       }
     },
