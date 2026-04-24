@@ -78,9 +78,6 @@ Channel mapping (Tango 2 mixer → CRSF):
 | CH9     | L01    | Auto tune  |
 | CH10    | SE     | Beeper     |
 
-Full rationale + alternate layouts (one per LLM agent) in
-[`tango2/design/`](./tango2/design/).
-
 ## Unified OSD layout (AVATAR HD60, 60×22)
 
 ```
