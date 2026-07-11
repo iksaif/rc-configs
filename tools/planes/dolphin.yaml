@@ -1,0 +1,34 @@
+# Dolphin — AtomRC Dolphin Pro, EPP elevon delta + movable V-tail on twin
+# booms, single 6S pusher. Wing loading ~ Swordfish, but short span (low
+# roll inertia) + effective elevons + big power → agile and fast-rolling.
+name: Dolphin
+config: elevon
+anchor: false
+
+geometry:
+  span_mm: 800
+  wing_area_dm2: 16.96   # from dump header
+  mac_mm: 300            # ESTIMATE (short-span delta → large chord)
+  length_mm: 862
+
+mass:
+  auw_g: 1500            # 6S 21700
+  cg_pct_mac: 18         # ESTIMATE — deltas need a fwd CG / reflex; verify
+
+surfaces:
+  # Elevons carry BOTH axes; per the dump, pitch authority ≈ 1.75× roll.
+  roll:  { area_dm2: 2.0, arm_mm: 300, max_defl_deg: 18 }   # elevon roll component — ESTIMATE
+  pitch: { area_dm2: 3.5, arm_mm: 430, max_defl_deg: 20 }   # elevons + V-tail pitch — ESTIMATE
+  yaw: vtail
+
+power:
+  cells: 6
+  capacity_mah: 3200
+  motors: 1
+  static_thrust_g: 2100  # T/W ~1.4 per dump header → ≈ 2100 g on 1.5 kg
+
+aero:
+  cl_max: 1.0            # reflexed/thin delta section
+  cd0: 0.028
+  oswald: 0.80
+  rho: 1.225

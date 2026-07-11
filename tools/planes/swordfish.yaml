@@ -1,0 +1,52 @@
+# Swordfish — the calibration ANCHOR.
+# Its params are flight-proven ("reference tune"); every other plane is
+# scaled *relative* to this one so the messy unknown coefficients cancel.
+name: Swordfish
+config: vtail          # conventional | vtail | elevon
+anchor: true
+
+geometry:
+  span_mm: 1200
+  wing_area_dm2: 15.35   # from dump header (measured)
+  mac_mm: 175            # ESTIMATE (area/span ≈ 128 mm; MAC a touch higher)
+  length_mm: 810
+
+mass:
+  auw_g: 1950            # flying weight w/ 4S 5000 (loaded)
+  cg_pct_mac: 28         # ESTIMATE (typical for this glider)
+
+# Control-surface proxies feed the roll/pitch "control power" ratio.
+# area = total moving area on that axis; arm = surface centroid → CG.
+# All ESTIMATES unless you measure them — they only affect PID *scaling*.
+surfaces:
+  roll:  { area_dm2: 2.2, arm_mm: 430, max_defl_deg: 18 }   # ailerons (pair)
+  pitch: { area_dm2: 2.6, arm_mm: 560, max_defl_deg: 20 }   # ruddervators (pitch component)
+  yaw: vtail
+
+power:
+  cells: 4
+  capacity_mah: 5000
+  motors: 2
+  static_thrust_g: 2600  # ESTIMATE, twin (T/W ≈ 1.3)
+
+aero:
+  cl_max: 1.1
+  cd0: 0.030
+  oswald: 0.85
+  rho: 1.225
+
+# Flight-proven values — the anchor the script scales from.
+anchor_params:
+  fw_ff_pitch: 100
+  fw_p_pitch: 15
+  fw_i_pitch: 5
+  fw_d_pitch: 5
+  fw_ff_roll: 60         # INAV default (Swordfish left it unset)
+  fw_p_roll: 15
+  fw_i_roll: 3
+  fw_d_roll: 7
+  fw_p_yaw: 20
+  fw_ff_yaw: 255
+  roll_rate: 15
+  pitch_rate: 10
+  yaw_rate: 10

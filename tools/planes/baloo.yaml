@@ -1,0 +1,33 @@
+# Baloo — FT Sea Duck, foam amphib twin. Slow, floaty, very light wing
+# loading. Conventional tail + rudder, with a little differential-thrust
+# yaw assist. Currently at INAV 9.0 stock — the biggest pre-tune target.
+name: Baloo
+config: conventional
+anchor: false
+
+geometry:
+  span_mm: 1422
+  wing_area_dm2: 32      # ESTIMATE (no measured area in dump — MEASURE THIS)
+  mac_mm: 240            # ESTIMATE
+  length_mm: 940
+
+mass:
+  auw_g: 1450            # w/ 3S 2200 (measured-ish)
+  cg_pct_mac: 28         # ESTIMATE — set per FT Sea Duck plans, then glide-test
+
+surfaces:
+  roll:  { area_dm2: 2.8, arm_mm: 500, max_defl_deg: 22 }   # ailerons (pair) — ESTIMATE
+  pitch: { area_dm2: 2.4, arm_mm: 650, max_defl_deg: 22 }   # elevator — ESTIMATE
+  yaw: rudder+diffthrust
+
+power:
+  cells: 3
+  capacity_mah: 2200
+  motors: 2
+  static_thrust_g: 1600  # ESTIMATE, twin 2212 10x4.5 on 3S (T/W ≈ 1.1)
+
+aero:
+  cl_max: 1.2            # high-lift flat foam wing
+  cd0: 0.040            # draggy foamboard + floats
+  oswald: 0.80
+  rho: 1.225
