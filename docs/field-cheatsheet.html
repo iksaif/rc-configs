@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Field cheat sheet — Baloo / Swordfish / Dolphin</title>
 <style>
   :root {
@@ -15,6 +15,9 @@
     --warn: #c05c28;
     --danger: #c0392b;
     --accent: #3a6fb0;
+    --safe-bg: #e8f4ec;
+    --warn-bg: #f7ebe2;
+    --danger-bg: #f7e6e3;
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -27,6 +30,9 @@
       --warn: #e89661;
       --danger: #e57264;
       --accent: #6fa3d8;
+      --safe-bg: #1e2a22;
+      --warn-bg: #2e241c;
+      --danger-bg: #2e1e1c;
     }
   }
   * { box-sizing: border-box; }
@@ -36,53 +42,202 @@
     color: var(--fg);
     margin: 0;
     padding: 12px;
-    line-height: 1.35;
-    font-size: 14px;
+    line-height: 1.4;
+    font-size: 16px;
+    max-width: 780px;
+    margin: 0 auto;
   }
-  h1 { font-size: 18px; margin: 0 0 2px; }
+  h1 { font-size: 20px; margin: 0 0 2px; }
   h2 {
-    font-size: 12px;
+    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--muted);
-    margin: 14px 0 6px;
-    font-weight: 600;
+    margin: 0 0 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   header p { margin: 0 0 14px; color: var(--muted); font-size: 12px; }
   .card {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
   }
-  .card.tight { padding: 6px 10px; }
+  .card.accent-safe   { border-left: 5px solid var(--safe); }
+  .card.accent-danger { border-left: 5px solid var(--danger); }
+  .card.accent-warn   { border-left: 5px solid var(--warn); }
+  .card.accent-blue   { border-left: 5px solid var(--accent); }
   .grid2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 560px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* ---- critical banner ---- */
+  .banner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .banner .cell {
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .banner .cell.arm { background: var(--warn); }
+  .banner .cell.rth { background: var(--danger); }
+  .banner .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.9; }
+  .banner .big { font-size: 30px; font-weight: 800; line-height: 1.05; margin-top: 2px; }
+  .banner .sub { font-size: 12px; opacity: 0.95; margin-top: 3px; }
+
+  /* ---- physical switch diagram ---- */
+  .radio {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    background: var(--bg);
+  }
+  .grip { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grip-label {
+    grid-column: 1 / -1;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: -2px;
+  }
+  .swcol {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px;
+    text-align: center;
+  }
+  .swcol .sw {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 1px 7px;
+    border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    margin-bottom: 5px;
+  }
+  .swcol .row { font-size: 13px; font-weight: 600; padding: 1px 0; white-space: nowrap; }
+  .swcol .row .k { color: var(--muted); font-family: ui-monospace, monospace; font-weight: 700; }
+  .shoulders {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
-  @media (max-width: 520px) { .grid2 { grid-template-columns: 1fr; } }
-  table {
-    width: 100%;
-    border-collapse: collapse;
+  .shoulder {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
     font-size: 13px;
+    text-align: center;
   }
-  th, td {
-    text-align: left;
-    padding: 4px 6px;
+  .shoulder .sw {
+    font-weight: 800;
+    background: var(--accent);
+    color: white;
+    padding: 0 6px;
+    border-radius: 4px;
+  }
+
+  /* ---- shared bits ---- */
+  .sw-inline {
+    display: inline-block;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 0 6px;
+    border-radius: 4px;
+    background: var(--accent);
+    color: white;
+    min-width: 22px;
+    text-align: center;
+  }
+  .pos { font-family: ui-monospace, monospace; font-weight: 700; }
+  .pos.up   { color: var(--safe); }
+  .pos.mid  { color: var(--accent); }
+  .pos.down { color: var(--danger); }
+  .mode { font-weight: 700; }
+  .mode.arm      { color: var(--danger); }
+  .mode.angle    { color: var(--safe); }
+  .mode.acro     { color: var(--accent); }
+  .mode.manual   { color: var(--warn); }
+  .mode.rth      { color: var(--danger); }
+  .mode.loiter   { color: var(--accent); }
+  .mode.launch   { color: var(--warn); }
+  .mode.autotune { color: var(--warn); }
+
+  ul.keys { list-style: none; margin: 0; padding: 0; }
+  ul.keys li { padding: 4px 0; border-bottom: 1px solid var(--border); }
+  ul.keys li:last-child { border-bottom: none; }
+
+  .step {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    padding: 5px 0;
     border-bottom: 1px solid var(--border);
-    vertical-align: top;
   }
-  th {
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    background: var(--accent);
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout {
+    padding: 8px 12px;
+    margin: 8px 0 0;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .callout.danger { background: var(--danger-bg); border-left: 4px solid var(--danger); }
+  .callout.safe   { background: var(--safe-bg);   border-left: 4px solid var(--safe); }
+  .callout.warn   { background: var(--warn-bg);   border-left: 4px solid var(--warn); }
+
+  .plane-card h3 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .plane-card h3 .tag {
+    font-size: 10px;
     font-weight: 600;
-    color: var(--muted);
-    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    color: var(--muted);
   }
-  tr:last-child td { border-bottom: none; }
-  code, kbd {
+  .plane-card ul { font-size: 13px; margin: 4px 0; padding-left: 16px; }
+  .plane-card li { margin: 2px 0; }
+  code {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 12px;
     background: var(--bg);
@@ -90,88 +245,10 @@
     border-radius: 3px;
     border: 1px solid var(--border);
   }
-  .sw {
-    display: inline-block;
-    font-weight: 700;
-    font-size: 13px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    background: var(--accent);
-    color: white;
-    min-width: 24px;
-    text-align: center;
-  }
-  .pos {
-    font-family: ui-monospace, monospace;
-    font-weight: 600;
-  }
-  .pos.up   { color: var(--safe); }
-  .pos.mid  { color: var(--accent); }
-  .pos.down { color: var(--danger); }
-  .mode {
-    font-weight: 600;
-  }
-  .mode.angle  { color: var(--safe); }
-  .mode.acro   { color: var(--accent); }
-  .mode.manual { color: var(--warn); }
-  .mode.rth    { color: var(--danger); }
-  .mode.loiter { color: var(--accent); }
-  .mode.launch { color: var(--warn); }
-  .mode.autotune { color: var(--warn); }
-  ol, ul { margin: 4px 0; padding-left: 18px; }
-  ol li, ul li { margin: 2px 0; }
-  .big-step {
-    display: flex;
-    gap: 10px;
-    align-items: baseline;
-    margin: 6px 0;
-  }
-  .big-step .num {
-    background: var(--accent);
-    color: white;
-    font-weight: 700;
-    font-size: 13px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .danger-box {
-    background: color-mix(in srgb, var(--danger) 10%, transparent);
-    border-left: 3px solid var(--danger);
-    padding: 6px 10px;
-    margin: 6px 0;
-    border-radius: 3px;
-  }
-  .safe-box {
-    background: color-mix(in srgb, var(--safe) 10%, transparent);
-    border-left: 3px solid var(--safe);
-    padding: 6px 10px;
-    margin: 6px 0;
-    border-radius: 3px;
-  }
-  .plane-card h3 {
-    margin: 0 0 4px;
-    font-size: 14px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-  .plane-card h3 .tag {
-    font-size: 10px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
-  }
-  .plane-card ul { font-size: 12px; }
   @media print {
-    body { font-size: 12px; padding: 6mm; background: white; color: black; }
-    .card { border: 1px solid #999; background: white; page-break-inside: avoid; }
-    h2 { margin-top: 10px; }
+    body { font-size: 12px; padding: 4mm; background: white; color: black; max-width: none; }
+    .card, .radio { border: 1px solid #999; background: white; page-break-inside: avoid; }
+    .banner .cell { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   }
 </style>
 </head>
@@ -179,154 +256,168 @@
 
 <header>
   <h1>Field cheat sheet</h1>
-  <p>INAV 9.0.1 · TBS Tango 2 · Baloo · Swordfish · Dolphin</p>
+  <p>INAV 9.0.1 · TBS Tango 2 · Baloo · Swordfish · Dolphin · verified 2026-07-11</p>
 </header>
 
-<!-- SWITCH REFERENCE -->
-<div class="card">
-  <h2>Switch map</h2>
-  <table>
-    <tr><th>Switch</th><th>↑ / unpressed</th><th>middle</th><th>↓ / pressed</th></tr>
-    <tr>
-      <td><span class="sw">SA</span> left 2-pos</td>
-      <td class="pos up">DISARM</td>
-      <td>—</td>
-      <td class="pos down"><span class="mode rth">ARM</span></td>
-    </tr>
-    <tr>
-      <td><span class="sw">SB</span> left 3-pos</td>
-      <td class="pos up"><span class="mode angle">ANGLE</span></td>
-      <td class="pos mid"><span class="mode acro">ACRO</span></td>
-      <td class="pos down"><span class="mode manual">MANUAL</span></td>
-    </tr>
-    <tr>
-      <td><span class="sw">SC</span> right 3-pos</td>
-      <td class="pos up">no nav</td>
-      <td class="pos mid"><span class="mode loiter">LOITER</span></td>
-      <td class="pos down"><span class="mode rth">RTH</span></td>
-    </tr>
-    <tr>
-      <td><span class="sw">SD</span> right 2-pos</td>
-      <td class="pos up">launch off</td>
-      <td>—</td>
-      <td class="pos down"><span class="mode launch">NAV LAUNCH</span></td>
-    </tr>
-    <tr>
-      <td><span class="sw">SE</span> shoulder</td>
-      <td class="pos up">—</td>
-      <td>—</td>
-      <td class="pos down">BEEPER (hold)</td>
-    </tr>
-    <tr>
-      <td><span class="sw">SF</span> shoulder</td>
-      <td colspan="3">tap to toggle <span class="mode autotune">AUTOTUNE</span> (sticky)</td>
-    </tr>
-  </table>
+<!-- CRITICAL BANNER -->
+<div class="banner">
+  <div class="cell arm">
+    <span class="label">Arm</span>
+    <span class="big">SA ↓</span>
+    <span class="sub">↑ = disarm · always start ↑</span>
+  </div>
+  <div class="cell rth">
+    <span class="label">Bring it back</span>
+    <span class="big">SC ↓</span>
+    <span class="sub">= RTH · 50 m · loiters home</span>
+  </div>
+</div>
+
+<!-- PHYSICAL SWITCH DIAGRAM -->
+<div class="card accent-blue">
+  <h2>🎚️ Switch layout — Tango 2 top view</h2>
+  <div class="radio">
+    <div class="grip">
+      <div class="grip-label">left grip</div>
+      <div class="swcol">
+        <span class="sw">SA</span>
+        <div class="row"><span class="k">↑</span> DISARM</div>
+        <div class="row"><span class="k">↓</span> <span class="mode arm">ARM</span></div>
+      </div>
+      <div class="swcol">
+        <span class="sw">SB</span>
+        <div class="row"><span class="k">↑</span> <span class="mode angle">ANGLE</span></div>
+        <div class="row"><span class="k">·</span> <span class="mode acro">ACRO</span></div>
+        <div class="row"><span class="k">↓</span> <span class="mode manual">MANUAL</span></div>
+      </div>
+    </div>
+    <div class="grip">
+      <div class="grip-label">right grip</div>
+      <div class="swcol">
+        <span class="sw">SC</span>
+        <div class="row"><span class="k">↑</span> no nav</div>
+        <div class="row"><span class="k">·</span> <span class="mode loiter">LOITER</span></div>
+        <div class="row"><span class="k">↓</span> <span class="mode rth">RTH</span></div>
+      </div>
+      <div class="swcol">
+        <span class="sw">SD</span>
+        <div class="row"><span class="k">↑</span> off</div>
+        <div class="row"><span class="k">↓</span> <span class="mode launch">NAV LAUNCH</span></div>
+      </div>
+    </div>
+    <div class="shoulders">
+      <div class="shoulder"><span class="sw">SE</span> left shoulder — hold = BEEPER</div>
+      <div class="shoulder"><span class="sw">SF</span> right shoulder — tap = <span class="mode autotune">AUTOTUNE</span></div>
+    </div>
+  </div>
 </div>
 
 <!-- PRE-FLIGHT -->
 <div class="card">
-  <h2>Pre-flight sequence</h2>
-  <div class="big-step"><span class="num">1</span><div>Power FC &amp; radio. All switches <span class="pos up">↑ / unpressed</span>. No warnings expected.</div></div>
-  <div class="big-step"><span class="num">2</span><div>Wait for GPS fix — check OSD sat count <strong>≥ 8</strong>.</div></div>
-  <div class="big-step"><span class="num">3</span><div>Verify OSD: battery voltage, video link, home-dir arrow present.</div></div>
-  <div class="big-step"><span class="num">4</span><div>Launch with assist? Flip <span class="sw">SD</span> <span class="pos down">↓</span> before arming.</div></div>
-  <div class="big-step"><span class="num">5</span><div>Arm: <span class="sw">SA</span> <span class="pos down">↓</span>. (No GPS fix? Hold full-right yaw while flipping.)</div></div>
-  <div class="big-step"><span class="num">6</span><div>Throttle up, throw.</div></div>
-  <div class="big-step"><span class="num">7</span><div>Airborne: <span class="sw">SD</span> back to <span class="pos up">↑</span> so you don't re-enter launch.</div></div>
+  <h2>🛫 Pre-flight</h2>
+  <div class="step"><span class="num">1</span><div><strong>Clean start.</strong> <span class="sw-inline">SA</span><span class="pos up">↑</span> <span class="sw-inline">SB</span><span class="pos up">↑</span> <span class="sw-inline">SC</span><span class="pos up">↑</span> <span class="sw-inline">SD</span><span class="pos up">↑</span>, shoulders released. No switch warnings (SE/SF exempt).</div></div>
+  <div class="step"><span class="num">2</span><div><strong>GPS fix</strong> — OSD sats <strong>≥ 8</strong>.</div></div>
+  <div class="step"><span class="num">3</span><div><strong>OSD check</strong> — battery V, video link, home-arrow present.</div></div>
+  <div class="step"><span class="num">4</span><div><strong>Launch assist?</strong> <span class="sw-inline">SD</span><span class="pos down">↓</span> before arming.</div></div>
+  <div class="step"><span class="num">5</span><div><strong>Arm</strong> — <span class="sw-inline">SA</span><span class="pos down">↓</span>. Won't arm? Read the OSD "arming disabled" reason and fix it — don't force it.</div></div>
+  <div class="step"><span class="num">6</span><div><strong>Throttle up, throw.</strong></div></div>
+  <div class="step"><span class="num">7</span><div><strong>Airborne</strong> — <span class="sw-inline">SD</span><span class="pos up">↑</span> so you don't re-enter launch.</div></div>
 </div>
 
 <!-- IN-FLIGHT -->
 <div class="grid2">
-  <div class="card">
-    <h2>Routine flight</h2>
-    <ul>
-      <li>Default cruise → <span class="sw">SB</span> <span class="pos up">↑</span> = <span class="mode angle">ANGLE</span></li>
-      <li>Sportier → <span class="sw">SB</span> <span class="pos mid">mid</span> = <span class="mode acro">ACRO</span></li>
-      <li>Glider / expert → <span class="sw">SB</span> <span class="pos down">↓</span> = <span class="mode manual">MANUAL</span></li>
-      <li>Goggles on/off → <span class="sw">SC</span> <span class="pos mid">mid</span> = <span class="mode loiter">LOITER</span></li>
-      <li>Find the plane → hold <span class="sw">SE</span></li>
+  <div class="card accent-safe">
+    <h2>🟢 Routine flight</h2>
+    <ul class="keys">
+      <li>Cruise → <span class="sw-inline">SB</span><span class="pos up">↑</span> <span class="mode angle">ANGLE</span></li>
+      <li>Sportier → <span class="sw-inline">SB</span><span class="pos mid">·</span> <span class="mode acro">ACRO</span></li>
+      <li>Expert → <span class="sw-inline">SB</span><span class="pos down">↓</span> <span class="mode manual">MANUAL</span></li>
+      <li>Orbit / goggles → <span class="sw-inline">SC</span><span class="pos mid">·</span> <span class="mode loiter">LOITER</span></li>
+      <li>Find the plane → hold <span class="sw-inline">SE</span></li>
     </ul>
   </div>
-  <div class="card">
-    <h2>Emergency</h2>
-    <div class="danger-box">
-      <strong>Lost orientation?</strong> <span class="sw">SC</span> <span class="pos down">↓</span> = <span class="mode rth">RTH</span>. Plane climbs to 50 m, flies home.
+  <div class="card accent-danger">
+    <h2>🔴 Emergency</h2>
+    <div class="callout danger">
+      <strong>Lost orientation?</strong> <span class="sw-inline">SC</span><span class="pos down">↓</span> = <span class="mode rth">RTH</span>. Climbs to 50 m, flies home, then <strong>loiters — no auto-land.</strong> Take control (<span class="sw-inline">SC</span><span class="pos up">↑</span>) to land. Dolphin never auto-lands.
     </div>
-    <div class="safe-box">
-      Getting back control: walk <span class="sw">SB</span> back to <span class="pos up">↑</span> <em>before</em> moving <span class="sw">SC</span> off ↓. RTH overrides flight-mode while active — exiting instantly hands over whatever <span class="sw">SB</span> is currently set to.
+    <div class="callout safe">
+      <strong>Exiting RTH:</strong> set <span class="sw-inline">SB</span> to <span class="pos up">↑</span> <em>first</em>, then <span class="sw-inline">SC</span><span class="pos up">↑</span> — you drop straight into whatever SB holds.
     </div>
   </div>
 </div>
 
-<!-- MODE INTERACTIONS -->
+<!-- MODE PRIORITY -->
 <div class="card">
-  <h2>Mode priority (who wins)</h2>
-  <ul>
-    <li><span class="mode rth">RTH</span> overrides everything except ARM.</li>
-    <li><span class="mode loiter">LOITER</span> overrides manual sticks for position, <span class="mode angle">ANGLE</span> / <span class="mode acro">ACRO</span> / <span class="mode manual">MANUAL</span> handle attitude underneath.</li>
-    <li><span class="mode launch">NAV LAUNCH</span> is active only between arm and first successful climb-out; self-exits afterwards.</li>
-    <li>No flight-mode aux active = <span class="mode acro">ACRO</span> (implicit, via <span class="sw">SB</span> mid).</li>
+  <h2>⚖️ Who wins</h2>
+  <ul class="keys">
+    <li><span class="mode rth">RTH</span> beats everything except ARM.</li>
+    <li><span class="mode loiter">LOITER</span> holds position; <span class="mode angle">ANGLE</span>/<span class="mode acro">ACRO</span>/<span class="mode manual">MANUAL</span> handle attitude underneath.</li>
+    <li><span class="mode launch">NAV LAUNCH</span> lives only from arm → first climb-out, then self-exits.</li>
+    <li>No flight-mode aux = <span class="mode acro">ACRO</span> (implicit, <span class="sw-inline">SB</span><span class="pos mid">·</span>).</li>
   </ul>
 </div>
 
 <!-- AUTOTUNE -->
-<div class="card">
-  <h2>AUTO TUNE (Baloo / Dolphin only, once per plane)</h2>
+<div class="card accent-warn">
+  <h2>🛠️ Auto tune — do on Baloo / Dolphin, once</h2>
+  <div class="callout danger">
+    <strong>SF is live on all three planes,</strong> Swordfish included. Don't tap it airborne on Swordfish — it overwrites the known-good reference tune.
+  </div>
   <ol>
-    <li>Climb to <strong>≥ 80 m</strong> in <span class="mode angle">ANGLE</span>, calm air, plenty of open space.</li>
-    <li>Tap <span class="sw">SF</span> once → latch on (listen for voice callout if configured). Plane will induce oscillations on pitch + roll.</li>
-    <li>Fly figure-8s, let the controller sweep both axes for 30–60 s.</li>
-    <li>Tap <span class="sw">SF</span> again → latch off. Values saved to the active PID profile.</li>
-    <li>Land. Back at the bench, disable AUTOTUNE in the aux block so future mis-taps do nothing.</li>
+    <li>Climb <strong>≥ 80 m</strong> in <span class="mode angle">ANGLE</span>, calm air, open space.</li>
+    <li>Tap <span class="sw-inline">SF</span> → latch on (voice callout if configured). Plane induces pitch + roll oscillations.</li>
+    <li>Fly figure-8s, let it sweep both axes 30–60 s.</li>
+    <li>Tap <span class="sw-inline">SF</span> → latch off. Saved to the active PID profile.</li>
+    <li>Land. At the bench, disable AUTOTUNE in the aux block so mis-taps do nothing.</li>
   </ol>
 </div>
 
 <!-- FLEET -->
-<div class="card tight">
-  <h2>Fleet quick specs</h2>
+<div class="card">
+  <h2>🛩️ Fleet quick specs</h2>
   <div class="grid2">
     <div class="plane-card">
       <h3>Baloo <span class="tag">FT Sea Duck · untested</span></h3>
       <ul>
         <li>1422 mm · ~1300 g + battery</li>
-        <li>2× 2212-class motors, 10×4.5 on 3S</li>
-        <li>3S 2200–3000 mAh · ~20 min cruise</li>
-        <li>SBUS-over-inverted-UART (legacy wiring)</li>
+        <li>2× 2212-class, 10×4.5 on 3S</li>
+        <li>3S 2200–3000 mAh · ~20 min</li>
+        <li>SBUS-over-inverted-UART (legacy)</li>
       </ul>
     </div>
     <div class="plane-card">
       <h3>Swordfish <span class="tag">AtomRC 1200 · flies OK</span></h3>
       <ul>
         <li>1200 mm · 1.4 kg AUW, 91 g/dm²</li>
-        <li>2× 2004–2306 class, 7042 props</li>
-        <li>4S 5000 mAh · 45–60 min cruise</li>
-        <li>CRSF on UART0; AIRMODE off by design</li>
+        <li>2× 2004–2306, 7042 props</li>
+        <li>4S 5000 mAh · 45–60 min</li>
+        <li>CRSF on UART0; AIRMODE off</li>
       </ul>
     </div>
     <div class="plane-card">
       <h3>Dolphin <span class="tag">AtomRC Pro · untested</span></h3>
       <ul>
         <li>800 mm · ~1.5 kg AUW</li>
-        <li>2807 1100 kV, 8×4 prop, BLS 50 A 6S</li>
-        <li>6S 21700 1P · 25–35 min cruise</li>
+        <li>2807 1100 kV, 8×4, BLS 50 A 6S</li>
+        <li>6S 21700 1P · 25–35 min</li>
         <li>CRSF + DJI OSD · safehome cleared</li>
       </ul>
     </div>
     <div class="plane-card">
       <h3>Common to all</h3>
       <ul>
-        <li>INAV 9.0.1, AVATAR HD60 OSD, UBlox GPS + Galileo</li>
+        <li>INAV 9.0.1, AVATAR HD60, UBlox+Galileo</li>
         <li>RTH alt 50 m, RTH on failsafe</li>
-        <li>OSD: speed left tape, altitude right tape</li>
-        <li>ACRO fallback on <span class="sw">SB</span> mid</li>
+        <li>OSD: speed tape left, alt tape right</li>
+        <li>ACRO fallback on <span class="sw-inline">SB</span><span class="pos mid">·</span></li>
       </ul>
     </div>
   </div>
 </div>
 
 <!-- FOOTER -->
-<div class="card tight" style="text-align: center; font-size: 11px; color: var(--muted);">
+<div class="card" style="text-align: center; font-size: 12px; color: var(--muted); padding: 8px;">
   Full configs &amp; rationale: <code>github.com/iksaif/rc-configs</code>
 </div>
 
