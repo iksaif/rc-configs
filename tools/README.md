@@ -23,7 +23,16 @@ physics-exact numbers; the PID output is just a sane seed autotune refines.
 ./pretune.py baloo --against x.txt # diff vs a specific dump file
 ./pretune.py --diff-only baloo     # just the paste-able `set` block
 ./pretune.py > /tmp/pretune.txt    # capture for review
+
+./pretune.py baloo --pid none --bank 35   # leave PIDs at INAV default, cap bank
+./pretune.py dolphin --pid anchor         # seed PIDs from Swordfish verbatim (1×)
 ```
+
+`--pid` picks the PID/rate seed: `scaled` (default, similarity-scaled and
+clamped), `anchor` (copy Swordfish's proven values 1×), or `none` (emit no
+PID/rate lines — keep INAV defaults or an existing hand-tune, autotune later).
+`--bank DEG` caps `nav_fw_bank_angle` and recomputes the loiter radius to match
+— use it to trade a tighter turn for more maiden stall-margin.
 
 With `--diff`/`--against` each parameter is compared to your current config:
 `~` changed (shows `was N`), `+` new (not set today), `=` unchanged. The CLI

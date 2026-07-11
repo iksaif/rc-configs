@@ -41,7 +41,7 @@ anchor_params:
   fw_p_pitch: 15
   fw_i_pitch: 5
   fw_d_pitch: 5
-  fw_ff_roll: 60         # INAV default (Swordfish left it unset)
+  fw_ff_roll: 50         # INAV default (Swordfish leaves this unset)
   fw_p_roll: 15
   fw_i_roll: 3
   fw_d_roll: 7

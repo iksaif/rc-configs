@@ -190,9 +190,16 @@ class Row:
         self.key, self.val, self.unit, self.why, self.green = key, val, unit, why, green
 
 
-def compute(plane: Plane, ref: Plane) -> list[Row]:
+def compute(plane: Plane, ref: Plane, pid_mode: str = "scaled", bank: float | None = None) -> list[Row]:
     rows: list[Row] = []
     G_, A_ = True, False
+
+    # Optional bank cap: recompute loiter radius so it stays consistent.
+    if bank is not None:
+        plane.bank_deg = bank
+        plane.turn_radius = plane.v_cruise ** 2 / (G * math.tan(math.radians(bank)))
+    bank_why = "capped for maiden margin" if bank is not None else \
+               f"keeps 15% stall margin at cruise (WL {plane.wing_loading:.0f} g/dm²)"
 
     # --- GREEN: cruise / nav / launch, from physics ---
     vc = round(plane.v_cruise * 100)          # cm/s for INAV
@@ -200,8 +207,7 @@ def compute(plane: Plane, ref: Plane) -> list[Row]:
                     f"1.35·Vstall ({plane.v_stall:.1f} m/s) = {plane.v_cruise:.1f} m/s", G_))
     rows.append(Row("fw_reference_airspeed", vc, "cm/s", "= cruise speed", G_))
 
-    rows.append(Row("nav_fw_bank_angle", round(plane.bank_deg), "deg",
-                    f"keeps 15% stall margin in the turn (WL {plane.wing_loading:.0f} g/dm²)", G_))
+    rows.append(Row("nav_fw_bank_angle", round(plane.bank_deg), "deg", bank_why, G_))
     rows.append(Row("nav_fw_loiter_radius", round(plane.turn_radius * 100), "cm",
                     f"V²/(g·tan {round(plane.bank_deg)}°) so loiter can't stall", G_))
 
@@ -222,32 +228,37 @@ def compute(plane: Plane, ref: Plane) -> list[Row]:
 
     rows.append(Row("battery_capacity", plane.capacity, "mAh", "for accurate mAh-used OSD", G_))
 
-    # --- AMBER: PID + rates, similarity-scaled from the anchor ---
-    # The scaling is dominated by the *estimated* surface areas, so clamp the
-    # ratio to a band we can defend: outside it the similarity assumption is
-    # too weak — start near this and let autotune do the real work.
-    RATIO_LO, RATIO_HI = 0.5, 2.0
-    CAP = {"fw_ff": 255, "fw_p": 200, "fw_d": 100, "fw_i": 100}    # INAV limits
-    ap = ref.spec["anchor_params"]
-    for axis, keys in (("roll", ("fw_ff_roll", "fw_p_roll", "fw_d_roll")),
-                       ("pitch", ("fw_ff_pitch", "fw_p_pitch", "fw_d_pitch"))):
-        raw = gain_ratio(plane, ref, axis)
-        if raw is None:
-            continue
-        gr = max(RATIO_LO, min(RATIO_HI, raw))
-        clamp_note = f" (clamped from {raw:.1f} — trust autotune here)" if gr != raw else ""
-        for k in keys:
-            if k in ap:
-                cap = next(v for p, v in CAP.items() if k.startswith(p))
-                val = max(1, min(cap, round(ap[k] * gr)))
-                rows.append(Row(k, val, "",
-                                f"{ap[k]}·{gr:.2f} plant-gain ratio{clamp_note}", A_))
-        rr = rate_ratio(plane, ref, axis)
-        rk = f"{axis}_rate"
-        if rr is not None and rk in ap:
-            val = max(4, min(40, round(ap[rk] * math.sqrt(rr))))  # sqrt: damp the swing
-            rows.append(Row(rk, val, "",
-                            f"{ap[rk]}·√{rr:.2f} agility ratio (×10 = deg/s)", A_))
+    # --- AMBER: PID + rates ---
+    #   scaled : similarity-scaled from the anchor (clamped 0.5–2.0×)
+    #   anchor : copy Swordfish's flight-proven values verbatim (ratio 1)
+    #   none   : emit nothing — leave INAV defaults, autotune flight 1
+    if pid_mode != "none":
+        RATIO_LO, RATIO_HI = 0.5, 2.0
+        CAP = {"fw_ff": 255, "fw_p": 200, "fw_d": 100, "fw_i": 100}    # INAV limits
+        ap = ref.spec["anchor_params"]
+        for axis, keys in (("roll", ("fw_ff_roll", "fw_p_roll", "fw_d_roll")),
+                           ("pitch", ("fw_ff_pitch", "fw_p_pitch", "fw_d_pitch"))):
+            raw = gain_ratio(plane, ref, axis)
+            if raw is None:
+                continue
+            if pid_mode == "anchor":
+                gr, clamp_note = 1.0, " (Swordfish seed)"
+            else:
+                gr = max(RATIO_LO, min(RATIO_HI, raw))
+                clamp_note = f" (clamped from {raw:.1f} — trust autotune here)" if gr != raw else ""
+            for k in keys:
+                if k in ap:
+                    cap = next(v for p, v in CAP.items() if k.startswith(p))
+                    val = max(1, min(cap, round(ap[k] * gr)))
+                    rows.append(Row(k, val, "",
+                                    f"{ap[k]}·{gr:.2f} plant-gain ratio{clamp_note}", A_))
+            rr = rate_ratio(plane, ref, axis)
+            rk = f"{axis}_rate"
+            if rr is not None and rk in ap:
+                mult = 1.0 if pid_mode == "anchor" else math.sqrt(rr)
+                val = max(4, min(40, round(ap[rk] * mult)))     # sqrt: damp the swing
+                rows.append(Row(rk, val, "",
+                                f"{ap[rk]}·{mult:.2f} agility ratio (×10 = deg/s)", A_))
 
     # --- CG target: trust the sourced spec CG; cross-check static margin ---
     note = f"from spec ({plane.spec['mass'].get('cg_source', 'input yaml')})"
@@ -333,6 +344,10 @@ def main():
                     help="diff against the plane's newest planes/<name>/INAV_*.txt")
     ap.add_argument("--against", metavar="DUMP",
                     help="diff against a specific dump file (implies --diff)")
+    ap.add_argument("--pid", choices=("scaled", "anchor", "none"), default="scaled",
+                    help="PID seed: scaled (default), anchor (Swordfish 1×), none (leave INAV defaults)")
+    ap.add_argument("--bank", type=float, metavar="DEG",
+                    help="cap nav_fw_bank_angle (recomputes loiter radius)")
     args = ap.parse_args()
 
     ref = Plane(load("swordfish"))
@@ -352,7 +367,8 @@ def main():
             else:
                 current, src = parse_dump(path), path.name
 
-        render(plane, ref, compute(plane, ref), args.diff_only, current, src)
+        rows = compute(plane, ref, pid_mode=args.pid, bank=args.bank)
+        render(plane, ref, rows, args.diff_only, current, src)
 
 
 if __name__ == "__main__":
