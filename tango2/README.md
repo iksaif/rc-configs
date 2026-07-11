@@ -59,7 +59,23 @@ means PWM high (toward the ↓-arrow, pressed). Same convention across SA-SF.
 
 ## Tango 2 → radio sync
 
-The YAML isn't flashed directly to the radio — use FreedomTX Companion
-(or the equivalent EdgeTX fork) to load the corresponding `.bin` onto the
-SD card, then reload the model on the Tango. The checked-in YAML is the
-"source of truth" for diffs and rollback.
+The YAML is the source of truth; `model5.bin` is baked from it by
+[`tango-util`](https://github.com/iksaif/tango-util) and checked in for
+quick re-flashing without re-running the build.
+
+To regenerate and sanity-check the `.bin`, first build `tango-util` once
+(`cargo build --release` in a checkout at `~/dev/tango-util`; `verify.sh`
+also falls back to a `debug` build). Then:
+
+```sh
+./verify.sh                       # uses ~/dev/Tango/Tango/D as the reference SD
+./verify.sh /Volumes/TANGO\ II    # or point at a live SD mount
+```
+
+The script bakes `model5.plane.yaml` → `model5.bin` and checks: file size,
+otxD header, byte diff vs the reference, STICKY L01 wiring, CH9 source,
+Timer 1 settings, switch-warning bitmasks, and every CF's `play_name`.
+Expected output: "all OK". Anything else means DO NOT flash.
+
+Copy `model5.bin` onto the SD card at `MODELS/model5.bin` and reload the
+model on the Tango (power-cycle or re-select the model).

@@ -32,9 +32,13 @@ planes/
 ├── swordfish/     # AtomRC Swordfish (old gen)
 └── dolphin/       # AtomRC Dolphin Pro
 tango2/
-├── model5.plane.yaml          # TBS Tango 2 / FreedomTX model config
-├── model-schema.md            # schema for the YAML above
-└── design/                    # mode-layout design docs
+├── model5.plane.yaml   # TBS Tango 2 / FreedomTX model config (source of truth)
+├── model5.bin          # baked binary, ready to copy onto the SD card
+├── verify.sh           # bake YAML → .bin and sanity-check before flashing
+└── README.md           # switch inventory, channel map, sync workflow
+docs/
+├── inav/          # INAV 9.0.1 CLI reference (settings, box ids, OSD items…)
+└── tango2/        # schema for model5.plane.yaml (.md + .json)
 ```
 
 Each plane folder: the **most recent filename** (highest `INAV_<ver>_cli_<date>` suffix) is the live config. Older files are preserved for history.
@@ -46,9 +50,9 @@ Each plane folder: the **most recent filename** (highest `INAV_<ver>_cli_<date>`
 3. Type `save` (the last line of every dump already does this) and wait
    for reboot.
 
-For a fresh flash: start from `AtomRC Swordfish Diff All (USE WITH
-CAUTION - UNTUNED).txt` (factory baseline) or the equivalent stock dump
-for that board, then paste one of my tuned configs on top.
+For a fresh flash: start from `planes/swordfish/atomrc-factory-diff-untuned.txt`
+(factory baseline) or the equivalent stock dump for that board, then paste
+one of my tuned configs on top.
 
 ## Unified aux-mode map (all three planes)
 
@@ -75,7 +79,7 @@ Channel mapping (Tango 2 mixer → CRSF):
 | CH6     | SB     | Flight mode|
 | CH7     | SC     | NAV        |
 | CH8     | SD     | Launch     |
-| CH9     | L01    | Auto tune  |
+| CH9     | SF → L01 | Auto tune |
 | CH10    | SE     | Beeper     |
 
 ## Unified OSD layout (AVATAR HD60, 60×22)

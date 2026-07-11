@@ -6,7 +6,7 @@ live configs live under [`../planes/`](../planes/) and [`../tango2/`](../tango2/
 
 ## Contents
 
-- **[`inav/`](./inav/)** — INAV 9.0.1 CLI reference: full `settings.yaml`,
+- **[`inav/`](./inav/)** — INAV 9.0 CLI reference: full `settings-9.0.yaml`,
   box-id table, OSD item table, command list, feature names, aux-format
   cheat sheet, and a copy of INAV's upstream `Cli.md`. See
   `inav/README.md` for provenance and GPL attribution.
