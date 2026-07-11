@@ -5,11 +5,11 @@ name: Swordfish
 config: vtail          # conventional | vtail | elevon
 anchor: true
 
-geometry:
+geometry:                # AtomRC Swordfish 1200 official specs
   span_mm: 1200
-  wing_area_dm2: 15.35   # from dump header (measured)
-  mac_mm: 175            # ESTIMATE (area/span ≈ 128 mm; MAC a touch higher)
-  length_mm: 810
+  wing_area_dm2: 15.35   # AtomRC: 15.35 dm²
+  mac_mm: 145            # ESTIMATE (S/b ≈ 128 mm mean; MAC a touch higher)
+  length_mm: 810         # AtomRC: 810 mm
 
 mass:
   auw_g: 1950            # flying weight w/ 4S 5000 (loaded)

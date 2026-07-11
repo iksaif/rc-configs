@@ -17,14 +17,19 @@ physics-exact numbers; the PID output is just a sane seed autotune refines.
 ## Use
 
 ```sh
-./pretune.py                    # all planes: rationale table + CLI diff
-./pretune.py dolphin            # one plane
-./pretune.py --diff-only baloo  # just the paste-able `set` block
-./pretune.py > /tmp/pretune.txt # capture for review
+./pretune.py                       # all planes: rationale table + CLI block
+./pretune.py dolphin               # one plane
+./pretune.py dolphin --diff        # diff vs the plane's newest INAV_*.txt dump
+./pretune.py baloo --against x.txt # diff vs a specific dump file
+./pretune.py --diff-only baloo     # just the paste-able `set` block
+./pretune.py > /tmp/pretune.txt    # capture for review
 ```
 
-It **never edits the plane dumps** — review the CLI block, paste what you
-trust into the Configurator CLI, `save`, then fly.
+With `--diff`/`--against` each parameter is compared to your current config:
+`~` changed (shows `was N`), `+` new (not set today), `=` unchanged. The CLI
+block then emits only the lines that actually change, each annotated. It
+**never edits the plane dumps** — review the block, paste what you trust into
+the Configurator CLI, `save`, then fly.
 
 Output confidence:
 
@@ -33,6 +38,12 @@ Output confidence:
 - `○` **similarity-scaled** — PID/rates seeded from Swordfish × plant-gain and
   agility ratios. A safe starting point; one autotune flight dials them in.
   For a maiden on an untested plane, consider starting rates ~30% lower.
+
+The PID scaling is dominated by the *estimated* surface areas, so the ratio is
+clamped to 0.5–2.0×; outside that the tool says so and defers to autotune
+(validation: diffed against Dolphin's hand-tune, it lands `fw_ff_pitch` 122 vs
+110, rates within 1). CG comes from the sourced spec, with a rough tail-volume
+static-margin cross-check that flags `CHECK` when the two disagree.
 
 ## Inputs — `planes/*.yaml`
 

@@ -5,19 +5,19 @@ name: Baloo
 config: conventional
 anchor: false
 
-geometry:
+geometry:                # FT spec sheet (flitetest.com store + plans PDF)
   span_mm: 1422
-  wing_area_dm2: 32      # ESTIMATE (no measured area in dump — MEASURE THIS)
-  mac_mm: 240            # ESTIMATE
-  length_mm: 940
+  wing_area_dm2: 31.9    # FT: 494.5 in²
+  mac_mm: 229            # FT: 9 in constant chord
+  length_mm: 1067        # FT: 42 in
 
 mass:
-  auw_g: 1450            # w/ 3S 2200 (measured-ish)
-  cg_pct_mac: 28         # ESTIMATE — set per FT Sea Duck plans, then glide-test
+  auw_g: 1450            # user's build w/ 3S 2200 (FT lists 1301 g lighter)
+  cg_pct_mac: 28         # FT: CG 64 mm from LE ÷ 229 mm chord = 28%
 
-surfaces:
-  roll:  { area_dm2: 2.8, arm_mm: 500, max_defl_deg: 22 }   # ailerons (pair) — ESTIMATE
-  pitch: { area_dm2: 2.4, arm_mm: 650, max_defl_deg: 22 }   # elevator — ESTIMATE
+surfaces:                # FT recommends 16° throws; ailerons added by user
+  roll:  { area_dm2: 2.0, arm_mm: 500, max_defl_deg: 16 }   # ailerons (pair) — area ESTIMATE
+  pitch: { area_dm2: 2.4, arm_mm: 800, max_defl_deg: 16 }   # elevator — area ESTIMATE, arm ← 1067 mm tail
   yaw: rudder+diffthrust
 
 power:

@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import math
+import re
 import sys
 from pathlib import Path
 
@@ -34,7 +35,9 @@ except ImportError:
     sys.exit("pretune: needs PyYAML  ->  python3 -m pip install pyyaml")
 
 G = 9.81
+ROOT = Path(__file__).parent.parent
 PLANES_DIR = Path(__file__).parent / "planes"
+_SET_RE = re.compile(r"^\s*set\s+(\w+)\s*=\s*(.+?)\s*$")
 
 # ANSI colour, disabled when not a TTY so redirected output stays clean.
 _TTY = sys.stdout.isatty()
@@ -42,8 +45,34 @@ def _c(code: str, s: str) -> str:
     return f"\033[{code}m{s}\033[0m" if _TTY else s
 GREEN = lambda s: _c("32", s)
 AMBER = lambda s: _c("33", s)
+CYAN  = lambda s: _c("36", s)
 BOLD  = lambda s: _c("1", s)
 DIM   = lambda s: _c("2", s)
+
+
+def parse_dump(path: Path) -> dict[str, str]:
+    """Extract every `set key = value` from an INAV CLI dump."""
+    out: dict[str, str] = {}
+    for line in path.read_text().splitlines():
+        m = _SET_RE.match(line)
+        if m:
+            out[m.group(1)] = m.group(2).strip()
+    return out
+
+
+def find_dump(name: str) -> Path | None:
+    """Newest INAV_*.txt for a plane (filenames sort by date suffix)."""
+    folder = ROOT / "planes" / name
+    dumps = sorted(folder.glob("INAV_*.txt"))
+    return dumps[-1] if dumps else None
+
+
+def same_value(a: str, b: str) -> bool:
+    """Compare two CLI values, tolerating 1500 vs 1500.000 etc."""
+    try:
+        return abs(float(a) - float(b)) < 1e-6
+    except (TypeError, ValueError):
+        return str(a) == str(b)
 
 
 class Plane:
@@ -194,59 +223,98 @@ def compute(plane: Plane, ref: Plane) -> list[Row]:
     rows.append(Row("battery_capacity", plane.capacity, "mAh", "for accurate mAh-used OSD", G_))
 
     # --- AMBER: PID + rates, similarity-scaled from the anchor ---
+    # The scaling is dominated by the *estimated* surface areas, so clamp the
+    # ratio to a band we can defend: outside it the similarity assumption is
+    # too weak — start near this and let autotune do the real work.
+    RATIO_LO, RATIO_HI = 0.5, 2.0
+    CAP = {"fw_ff": 255, "fw_p": 200, "fw_d": 100, "fw_i": 100}    # INAV limits
     ap = ref.spec["anchor_params"]
     for axis, keys in (("roll", ("fw_ff_roll", "fw_p_roll", "fw_d_roll")),
                        ("pitch", ("fw_ff_pitch", "fw_p_pitch", "fw_d_pitch"))):
-        gr = gain_ratio(plane, ref, axis)
-        if gr is None:
+        raw = gain_ratio(plane, ref, axis)
+        if raw is None:
             continue
+        gr = max(RATIO_LO, min(RATIO_HI, raw))
+        clamp_note = f" (clamped from {raw:.1f} — trust autotune here)" if gr != raw else ""
         for k in keys:
             if k in ap:
-                rows.append(Row(k, max(1, round(ap[k] * gr)), "",
-                                f"{ap[k]} (Swordfish) × {gr:.2f} plant-gain ratio", A_))
+                cap = next(v for p, v in CAP.items() if k.startswith(p))
+                val = max(1, min(cap, round(ap[k] * gr)))
+                rows.append(Row(k, val, "",
+                                f"{ap[k]}·{gr:.2f} plant-gain ratio{clamp_note}", A_))
         rr = rate_ratio(plane, ref, axis)
         rk = f"{axis}_rate"
         if rr is not None and rk in ap:
             val = max(4, min(40, round(ap[rk] * math.sqrt(rr))))  # sqrt: damp the swing
-            rows.append(Row(rk, val, "deg/s·2",
-                            f"{ap[rk]} × √{rr:.2f} agility ratio", A_))
+            rows.append(Row(rk, val, "",
+                            f"{ap[rk]}·√{rr:.2f} agility ratio (×10 = deg/s)", A_))
 
-    # --- CG target (GREEN-ish): tail-volume neutral point estimate ---
+    # --- CG target: trust the sourced spec CG; cross-check static margin ---
+    note = f"from spec ({plane.spec['mass'].get('cg_source', 'input yaml')})"
     if plane.config in ("conventional", "vtail") and isinstance(plane.surf.get("pitch"), dict):
         St = plane.surf["pitch"]["area_dm2"] / 100.0
         lt = plane.surf["pitch"]["arm_mm"] / 1000.0
         Vh = (lt * St) / (plane.mac * plane.S)          # horizontal tail volume
-        # NP ≈ wing AC (25%) + tail contribution; SM target 8–12% MAC.
-        np_pct = 25 + min(35, Vh * 100 * 0.9)
-        cg_target = round(np_pct - 10)
-        rows.append(Row("# CG target", f"{cg_target}% MAC", "",
-                        f"NP≈{np_pct:.0f}% (tail vol {Vh:.2f}) − 10% static margin", G_))
+        np_pct = 25 + min(35, Vh * 100 * 0.9)           # rough neutral point
+        sm = np_pct - plane.cg_pct
+        note = f"spec CG; static margin ≈ {sm:.0f}% vs rough NP {np_pct:.0f}% ({'ok' if 5 <= sm <= 20 else 'CHECK'})"
     elif plane.config == "elevon":
-        rows.append(Row("# CG target", "15–18% MAC", "",
-                        "delta/elevon: fwd CG + reflex; verify by glide test", G_))
+        note = "delta/elevon: keep fwd + reflex; verify by glide test"
+    rows.append(Row("# CG target", f"{plane.cg_pct}% MAC", "", note, G_))
 
     return rows
 
 
-def render(plane: Plane, ref: Plane, rows: list[Row], diff_only: bool):
+def diff_mark(r: Row, current: dict | None):
+    """Return (glyph, note) comparing a row to the current dump."""
+    if current is None or r.key.startswith("#"):
+        return " ", ""
+    cur = current.get(r.key)
+    if cur is None:
+        return CYAN("+"), "new"
+    if same_value(cur, str(r.val)):
+        return DIM("="), "unchanged"
+    return AMBER("~"), f"was {cur}"
+
+
+def render(plane: Plane, ref: Plane, rows: list[Row], diff_only: bool, current: dict | None, src: str):
     if not diff_only:
-        print(BOLD(f"\n═══ {plane.name}  ({plane.config}, {plane.config != ref.config and 'scaled from Swordfish' or 'ANCHOR'}) ═══"))
+        kind = "scaled from Swordfish" if plane.config != ref.config or not plane.anchor else "ANCHOR"
+        print(BOLD(f"\n═══ {plane.name}  ({plane.config}, {kind}) ═══"))
         print(DIM(f"    span {plane.b*1000:.0f} mm · {plane.m:.2f} kg · WL {plane.wing_loading:.0f} g/dm² · "
                   f"Vstall {plane.v_stall:.1f} / Vcruise {plane.v_cruise:.1f} m/s · AR {plane.AR:.1f}"))
-        print(f"\n    {'PARAMETER':<26}{'VALUE':>9}  {'':<6} WHY")
+        if current is not None:
+            print(DIM(f"    diff vs {src}"))
+        hdr = f"\n    {'PARAMETER':<26}{'VALUE':>9}  {'':<6}"
+        print(hdr + ("  NOW / WHY" if current is not None else " WHY"))
         for r in rows:
             tag = GREEN("●") if r.green else AMBER("○")
+            glyph, note = diff_mark(r, current)
             unit = f"{r.unit}" if r.unit else ""
-            print(f"  {tag} {r.key:<26}{str(r.val):>9}  {unit:<6} {DIM(r.why)}")
-        print(DIM(f"\n    {GREEN('●')} physics-exact   {AMBER('○')} similarity-scaled starting point (autotune refines)"))
+            note_txt = f"{note}  ·  {r.why}" if note else r.why
+            print(f"  {glyph}{tag} {r.key:<26}{str(r.val):>9}  {unit:<6} {DIM(note_txt)}")
+        legend = f"\n    {GREEN('●')} physics-exact   {AMBER('○')} similarity-scaled (autotune refines)"
+        if current is not None:
+            legend += f"   {AMBER('~')} changes   {CYAN('+')} new   {DIM('=')} same"
+        print(DIM(legend))
 
-    # Paste-able CLI block (skips comment/CG rows).
-    print(f"\n# --- pretune diff: {plane.name}  (review before pasting) ---")
+    # Paste-able CLI block. In diff mode, emit only new/changed lines.
+    changed = [r for r in rows if not r.key.startswith("#")
+               and diff_mark(r, current)[0].strip() in ("+", "~", "")]
+    print(f"\n# --- pretune {'diff ' if current is not None else ''}{plane.name}"
+          f"{f' vs {src}' if current is not None else ''}  (review before pasting) ---")
+    if current is not None and not any(diff_mark(r, current)[1] in ("new",) or
+                                       diff_mark(r, current)[1].startswith("was") for r in changed):
+        print("# (no changes — current config already matches)")
     for r in rows:
         if r.key.startswith("#"):
             print(f"#   {r.key[2:]}: {r.val}  ({r.why})")
-        else:
-            print(f"set {r.key} = {r.val}")
+            continue
+        glyph, note = diff_mark(r, current)
+        if current is not None and note == "unchanged":
+            continue                       # diff mode: skip lines that don't change
+        suffix = f"    # {note}" if note else ""
+        print(f"set {r.key} = {r.val}{suffix}")
     print()
 
 
@@ -261,6 +329,10 @@ def main():
     ap = argparse.ArgumentParser(description="Static INAV fixed-wing pre-tune calculator")
     ap.add_argument("planes", nargs="*", help="plane names (default: all)")
     ap.add_argument("--diff-only", action="store_true", help="print only the CLI block")
+    ap.add_argument("--diff", action="store_true",
+                    help="diff against the plane's newest planes/<name>/INAV_*.txt")
+    ap.add_argument("--against", metavar="DUMP",
+                    help="diff against a specific dump file (implies --diff)")
     args = ap.parse_args()
 
     ref = Plane(load("swordfish"))
@@ -270,7 +342,17 @@ def main():
         plane = Plane(load(name))
         if plane.anchor and len(names) > 1:
             continue                       # don't re-tune the anchor in a full run
-        render(plane, ref, compute(plane, ref), args.diff_only)
+
+        current, src = None, ""
+        if args.diff or args.against:
+            path = Path(args.against) if args.against else find_dump(name)
+            if path is None or not path.exists():
+                print(f"# {name}: no dump to diff against "
+                      f"({args.against or 'planes/'+name+'/INAV_*.txt'})", file=sys.stderr)
+            else:
+                current, src = parse_dump(path), path.name
+
+        render(plane, ref, compute(plane, ref), args.diff_only, current, src)
 
 
 if __name__ == "__main__":
