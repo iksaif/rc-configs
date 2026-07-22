@@ -333,7 +333,7 @@ def load(name: str) -> dict:
     f = PLANES_DIR / f"{name}.yaml"
     if not f.exists():
         sys.exit(f"pretune: no spec for '{name}' at {f}")
-    return yaml.safe_load(f.read_text())
+    return yaml.safe_load(f.read_text(encoding="utf-8"))
 
 
 def main():

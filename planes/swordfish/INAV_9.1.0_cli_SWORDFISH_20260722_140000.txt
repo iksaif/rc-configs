@@ -1,0 +1,302 @@
+diff all
+
+# version
+# INAV/ATOMRCF405NAVI 9.1.0 Jul  8 2026 / 02:08:56 (15317503)
+# GCC-13.2.1 20231009
+
+# ============================================================================
+# SWORDFISH — AtomRC Swordfish (1st-gen, 1200 mm V-tail twin)
+# ============================================================================
+# Airframe
+#   Model:    AtomRC Swordfish (original V-tail, NOT the newer HD/Pro variant)
+#   Span:     1200 mm       Length: 810 mm
+#   Wing:     15.35 dm²     Wing loading: ~91 g/dm²
+#   Material: EPP
+#   Weight:   ~1.4 kg AUW (w/ 4S 5000 mAh ≈ 1.95 kg fully loaded)
+# Power
+#   Motors:   2x 2004–2306 class (twin tractor)
+#   Prop:     7042-2 (7" 2-blade)
+#   Battery:  4S 5000 mAh or 21700 1P4S (battery_capacity = 5000)
+# Control
+#   Surfaces: 2x ailerons + V-tail (2 surfaces mixed for pitch + yaw)
+#   Servos:   4x 9 g, see smix block below for wiring
+# Electronics
+#   FC:       AtomRC F405 NAVI (ATOMRCF405NAVI — no DELUX suffix)
+#   IMU:      BMI270   Baro: SPL06   Mag: NONE
+#   Radio:    CRSF (ELRS / TBS) on UART 0
+#   Video:    AVATAR HD    GPS: UBlox on UART 3 (Galileo on)
+# Status:   FLOWN — reference tune updated to INAV 9.1.0 with verified HD OSD & nav fixes
+# Endurance (est.): ~45-60 min cruise on 4S 5000 mAh
+# Nav setup
+#   Verified 60x22 HD OSD layout · RTH alt 50 m · FS = RTH
+#   Bank 45° · Loiter 34.4 m · Cruise 18.4 m/s · launch climb 25°, max angle 15°
+# ============================================================================
+
+# start the command batch
+batch start
+
+# reset configuration to default settings
+defaults noreboot
+
+# resources
+
+# Timer overrides
+
+# Outputs [servo]
+# Servo 1 & 2 = Ailerons (1550 µs center)
+# Servo 3 & 4 = V-Tail Ruddervators (1600 µs / 1350 µs asymmetric centers)
+servo 1 1000 2000 1550 -100
+servo 2 1000 2000 1550 -100
+servo 3 1000 2000 1600 -100
+servo 4 1000 2000 1350 -100
+
+# safehome
+
+# Fixed Wing Approach
+
+# geozone
+
+# geozone vertices
+
+# features
+feature -AIRMODE
+feature GPS
+feature PWM_OUTPUT_ENABLE
+feature FW_AUTOTRIM
+
+# beeper
+
+# blackbox
+blackbox -NAV_ACC
+blackbox NAV_POS
+blackbox NAV_PID
+blackbox MAG
+blackbox ACC
+blackbox ATTI
+blackbox RC_DATA
+blackbox RC_COMMAND
+blackbox MOTORS
+blackbox -GYRO_RAW
+blackbox -PEAKS_R
+blackbox -PEAKS_P
+blackbox -PEAKS_Y
+blackbox SERVOS
+
+# Receiver: Channel map
+map TAER
+
+# Ports
+serial 0 64 115200 115200 0 115200
+serial 1 0 115200 115200 0 115200
+serial 3 2 115200 115200 0 115200
+serial 4 33554432 115200 115200 0 115200
+
+# LEDs
+
+# LED color
+
+# LED mode_color
+
+# Modes [aux]
+# ============================================================================
+# Unified flight-mode map across Baloo / Swordfish / Dolphin — Tango 2 layout
+# ============================================================================
+# Radio assignment (Tango 2 gamepad, left and right top grips):
+#   SD (top-right 2-pos) → CH8  / AUX4 → NAV LAUNCH
+#   SB (top-left  3-pos) → CH6  / AUX2 → flight mode (ANGLE · ACRO · MANUAL)
+#   SC (top-right 3-pos) → CH7  / AUX3 → nav stack   (LOITER · off · RTH)
+#   SA (top-left  2-pos) → CH5  / AUX1 → ARM
+#   SE (left shoulder, momentary) → CH10 / AUX6 → BEEPER (hold)
+#   SF (right shoulder, momentary) → LS1 → CH9 / AUX5 → AUTO TUNE (sticky toggle)
+#
+# INAV behaviour:
+#   - No flight-mode aux active ⇒ ACRO (so SB-mid = ACRO by absence).
+#   - RTH outranks POSHOLD, both override manual sticks.
+#   - AUTO TUNE needs a sustained aux band — SF via sticky Logical Switch L1.
+# ============================================================================
+
+aux 0 0 0 1800 2100    # ARM          on SA HIGH
+aux 1 1 1 900 1200     # ANGLE        on SB LOW
+aux 2 12 1 1800 2100   # MANUAL       on SB HIGH
+aux 3 11 2 1300 1700   # NAV POSHOLD  on SC MID   (loiter — detent pos)
+aux 4 10 2 1800 2100   # NAV RTH      on SC HIGH  (safety)
+aux 5 36 3 1800 2100   # NAV LAUNCH   on SD HIGH  (opt-in)
+aux 6 21 4 1800 2100   # AUTO TUNE    on LS1 (SF sticky toggle)
+aux 7 13 5 1800 2100   # BEEPER       on SE HIGH  (hold)
+
+# Adjustments [adjrange]
+
+# Receiver rxrange
+
+# temp_sensor
+
+# Mission Control Waypoints [wp]
+#wp 0 invalid
+
+# ============================================================================
+# OSD layout 0 (AVATAR HD / Walksnail 60×22) — Fleet standard layout from Dolphin
+# ============================================================================
+osd_layout 0 0 54 19 V     # OSD_RSSI_VALUE
+osd_layout 0 1 3 17 V      # OSD_MAIN_BATT_VOLTAGE
+osd_layout 0 2 29 10 V     # OSD_CROSSHAIRS
+osd_layout 0 3 29 8 V      # OSD_ARTIFICIAL_HORIZON
+osd_layout 0 4 29 8 V      # OSD_HORIZON_SIDEBARS
+osd_layout 0 6 28 1 V      # OSD_FLYTIME
+osd_layout 0 7 3 2 V       # OSD_FLYMODE
+osd_layout 0 8 3 3 H       # OSD_CRAFT_NAME
+osd_layout 0 9 3 7 V       # OSD_THROTTLE_POS
+osd_layout 0 11 3 5 V      # OSD_VTXV2_CHANNEL
+osd_layout 0 12 3 4 V      # OSD_MAH_DRAWN
+osd_layout 0 13 14 10 V    # OSD_GPS_SPEED
+osd_layout 0 14 3 1 V      # OSD_GPS_SATS
+osd_layout 0 15 37 10 V    # OSD_ALTITUDE
+osd_layout 0 22 44 1 V     # OSD_HOME_DIR
+osd_layout 0 23 38 1 V     # OSD_HOME_DIST
+osd_layout 0 26 44 10 V    # OSD_VERTICAL_SPEED_INDICATOR
+osd_layout 0 28 13 17 V    # OSD_PITCH_ANGLE
+osd_layout 0 30 22 17 V    # OSD_MESSAGES
+osd_layout 0 32 1 20 V     # OSD_MAIN_BATT_CELL_VOLTAGE
+osd_layout 0 34 24 2 V     # OSD_HEADING_GRAPH
+osd_layout 0 35 3 3 V      # OSD_EFFICIENCY_MAH_PER_KM
+osd_layout 0 40 3 16 V     # OSD_TRIP_DIST
+osd_layout 0 41 4 8 V      # OSD_ATTITUDE_ROLL
+osd_layout 0 46 24 21 V    # OSD_WIND_SPEED_HORIZONTAL
+osd_layout 0 110 38 0 V    # OSD_LQ_UPLINK
+
+# Programming: logic
+logic 0 0 -1 22 0 0 0 0 0
+
+# Programming: global variables
+
+# Programming: PID controllers
+
+# OSD: custom elements
+
+# master
+set gyro_main_lpf_hz = 25
+set dynamic_gyro_notch_q = 250
+set dynamic_gyro_notch_min_hz = 30
+set gyro_zero_z = -2
+set ins_gravity_cmss =  976.990
+set gyro_adaptive_filter_min_hz = 20
+set acc_hardware = BMI270
+set acczero_x = -14
+set acczero_y = -59
+set acczero_z = 1
+set accgain_x = 4065
+set accgain_y = 4056
+set accgain_z = 4070
+set align_mag = CW270FLIP
+set mag_hardware = NONE
+set baro_hardware = SPL06
+set serialrx_provider = CRSF
+set blackbox_rate_denom = 2
+set motor_pwm_protocol = DSHOT600
+set failsafe_procedure = RTH
+set align_board_pitch = -1800
+set small_angle = 180
+set applied_defaults = 3
+set airmode_type = STICK_CENTER_ONCE
+set inav_w_z_baro_p =  0.350
+set nav_wp_radius = 5000
+set nav_wp_max_safe_distance = 500
+set nav_rth_allow_landing = FS_ONLY
+set nav_rth_altitude = 5000
+set nav_fw_bank_angle = 45
+set nav_fw_cruise_speed = 1836
+set fw_reference_airspeed = 1836
+set nav_fw_loiter_radius = 3436
+set nav_fw_cruise_throttle = 1304
+set nav_fw_min_throttle = 1150
+set nav_fw_max_throttle = 1850
+set nav_fw_control_smoothness = 2
+set nav_fw_launch_max_angle = 15
+set nav_fw_launch_motor_delay = 100
+set nav_fw_launch_max_altitude = 5000
+set nav_fw_launch_climb_angle = 25
+set nav_fw_launch_thr = 1500
+set nav_fw_allow_manual_thr_increase = ON
+set osd_video_system = AVATAR
+set osd_crosshairs_style = AIRCRAFT
+set osd_left_sidebar_scroll = SPEED
+set osd_right_sidebar_scroll = ALTITUDE
+set name = SWORDFISH
+set tz_offset = 60
+set tz_automatic_dst = EU
+
+# control_profile
+control_profile 1
+
+set fw_p_pitch = 15
+set fw_i_pitch = 5
+set fw_d_pitch = 5
+set fw_ff_pitch = 100
+set fw_p_roll = 15
+set fw_i_roll = 3
+set fw_d_roll = 7
+set fw_p_yaw = 20
+set fw_i_yaw = 0
+set fw_ff_yaw = 255
+set dterm_lpf_hz = 10
+set fw_turn_assist_pitch_gain =  0.400
+set nav_fw_pos_z_p = 25
+set nav_fw_pos_z_d = 8
+set nav_fw_pos_xy_p = 55
+set d_boost_min =  1.000
+set d_boost_max =  1.000
+set fw_level_pitch_trim =  5.000
+set rc_yaw_expo = 30
+set roll_rate = 15
+set pitch_rate = 10
+set yaw_rate = 10
+
+# --- control_profile 2 (unused) ---
+# control_profile 2
+
+# --- control_profile 3 (unused) ---
+# control_profile 3
+
+# mixer_profile
+mixer_profile 1
+
+set platform_type = AIRPLANE
+set model_preview_type = 28
+
+# Mixer: motor mixer
+mmix reset
+
+mmix 0  1.000  0.000  0.000  0.000
+mmix 1  1.000  0.000  0.000  0.000
+
+# Mixer: servo mixer
+smix reset
+
+smix 0 1 0 100 0 -1
+smix 1 2 0 100 0 -1
+smix 2 3 1 100 0 -1
+smix 3 3 2 -30 0 -1
+smix 4 4 1 -100 0 -1
+smix 5 4 2 -30 0 -1
+
+# mixer_profile
+mixer_profile 2
+
+# battery_profile
+battery_profile 1
+
+set battery_capacity = 5000
+set throttle_idle =  5.000
+
+# battery_profile
+battery_profile 2
+
+# battery_profile
+battery_profile 3
+
+# restore original profile selection
+control_profile 1
+mixer_profile 1
+battery_profile 1
+
+# save configuration
+save
